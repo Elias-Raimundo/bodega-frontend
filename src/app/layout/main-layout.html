@@ -1,0 +1,55 @@
+<div class="layout">
+
+  <main class="content">
+
+    <div class="topbar">
+
+      <!-- LEFT -->
+      <div class="left company">
+
+        <img
+          *ngIf="logo"
+          [src]="logo"
+          class="company-logo"
+        />
+
+        <div
+          *ngIf="!logo"
+          class="company-avatar"
+        >
+          {{ companyName.charAt(0) }}
+        </div>
+
+        <span>{{ companyName }}</span>
+
+      </div>
+
+      <!-- CENTER -->
+      <div class="center">
+        <a routerLink="/sales">Ventas</a>
+        <a routerLink="/tables"> Mesas</a>
+        <a routerLink="/products">Productos</a>
+        <a routerLink="/prepared-products">Tragos</a>
+        <a routerLink="/dashboard">Inicio</a>
+        <a routerLink="/reports">Reportes</a>
+        <a routerLink="/settings">Ajustes</a>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right">
+
+        <button class="logout-btn" (click)="logout()">
+          Salir
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="page">
+      <router-outlet></router-outlet>
+    </div>
+
+  </main>
+
+</div>

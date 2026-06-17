@@ -1,0 +1,83 @@
+<div class="history-page">
+
+  <div class="header">
+    <h1>Historial de ventas</h1>
+  </div>
+
+  <div class="sales-list">
+
+    <div
+      *ngFor="let sale of sales"
+      class="sale-card"
+    >
+
+      <!-- HEADER -->
+      <div
+        class="sale-header"
+        (click)="toggleDetails(sale.id)"
+      >
+
+        <div>
+          <div class="sale-id">
+            Venta #{{ sale.id }}
+          </div>
+
+          <div class="sale-date">
+            {{ sale.createdAt | date:'dd/MM/yyyy HH:mm' }}
+          </div>
+        </div>
+
+        <div class="sale-total">
+          ${{ sale.total | number:'1.0-0' }}
+        </div>
+
+      </div>
+
+      <!-- DETAILS -->
+      <div
+        *ngIf="expandedSaleId === sale.id"
+        class="sale-details"
+      >
+
+        <h4>Productos</h4>
+
+        <div
+          *ngFor="let item of sale.items"
+          class="detail-row"
+        >
+
+          <span>
+            {{ item.quantity }}x
+            {{ item.productName }}
+          </span>
+
+          <strong>
+            ${{ item.price * item.quantity  | number:'1.0-0'}}
+          </strong>
+
+        </div>
+
+        <h4>Pagos</h4>
+
+        <div
+          *ngFor="let payment of sale.payments"
+          class="detail-row"
+        >
+
+          <span>
+            {{ payment.method }}
+          </span>
+
+          <strong>
+            ${{ payment.amount | number:'1.0-0'}}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

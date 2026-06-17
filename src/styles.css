@@ -1,1 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'ngx-toastr/toastr';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+body {
+    background: #f5f7fb;
+    color: #111827;
+    font-family: 'Inter', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}

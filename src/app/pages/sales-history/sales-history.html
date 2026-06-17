@@ -1,0 +1,41 @@
+<h2>Historial de ventas</h2>
+
+<div class="sales-container">
+
+  <div 
+    class="sale-card"
+    *ngFor="let s of sales"
+    (click)="openDetails(s)"
+    [class.active]="selectedSale?.id === s.id"
+  >
+    <div class="sale-header">
+      <span class="date">
+        {{ s.createdAt | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+      <span class="total">
+        ${{ s.total | number:'1.0-0'}}
+      </span>
+      <span class="payment">
+        {{ translatePayment(s.paymentMethod) }}
+      </span>
+    </div>
+  </div>
+
+</div>
+
+<hr>
+
+<div *ngIf="selectedSale" class="details">
+
+  <h3>
+    Venta - {{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}
+  </h3>
+
+  <h3>Detalle</h3>
+
+  <div *ngFor="let item of selectedSale.items" class="item">
+    {{ item.productName }} x{{ item.quantity }}
+    <span>${{ item.price * item.quantity }}</span>
+  </div>
+
+</div>

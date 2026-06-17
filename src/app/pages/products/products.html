@@ -1,0 +1,372 @@
+<div class="products-container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+
+    <h1>📦 Productos</h1>
+
+    <div class="header-actions">
+
+      <button
+        class="primary"
+        (click)="showCreateProductModal = true"
+      >
+        + Producto
+      </button>
+
+      <button
+        class="secondary"
+        (click)="showCategoriesModal = true"
+      >
+        Categorías
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- FILTERS -->
+  <div class="card filters-card">
+
+    <div class="filters-bar">
+
+      <input
+        class="search"
+        [(ngModel)]="search"
+        placeholder="Buscar producto..."
+      />
+
+      <select [(ngModel)]="selectedFilterCategoryId">
+
+        <option [ngValue]="null">
+          Todas las categorías
+        </option>
+
+        <option
+          *ngFor="let c of categories"
+          [ngValue]="c.id"
+        >
+          {{ c.name }}
+        </option>
+
+      </select>
+
+      <select [(ngModel)]="stockFilter">
+
+        <option value="all">
+          Todo el stock
+        </option>
+
+        <option value="low">
+          Bajo stock
+        </option>
+
+        <option value="empty">
+          Sin stock
+        </option>
+
+      </select>
+
+      <select [(ngModel)]="sortBy">
+
+        <option value="name">
+          Ordenar por nombre
+        </option>
+
+        <option value="category">
+          Ordenar por categoría
+        </option>
+
+        <option value="price">
+          Mayor precio
+        </option>
+
+        <option value="stock">
+          Mayor stock
+        </option>
+
+        <option value="lessStock">
+          Menor stock
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="card table-card">
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th></th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let p of filteredProducts()">
+
+          <td>{{ p.name }}</td>
+
+          <td>
+            {{ p.category?.name || 'Sin categoría' }}
+          </td>
+
+          <td>${{ p.price | number:'1.0-0' }}</td>
+
+          <td>{{ p.stock | number:'1.0-0' }}</td>
+
+          <td class="actions">
+
+            <button
+              class="edit"
+              (click)="openEdit(p)"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="delete"
+              (click)="delete(p.id)"
+            >
+              🗑️
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- CREATE PRODUCT MODAL -->
+  <div
+    class="modal"
+    *ngIf="showCreateProductModal"
+  >
+
+    <div class="modal-content">
+
+      <h3>Nuevo producto</h3>
+
+      <input
+        [(ngModel)]="name"
+        placeholder="Nombre"
+      />
+
+      <input
+        [(ngModel)]="price"
+        type="number"
+        min="0"
+        placeholder="Precio"
+      />
+
+      <input
+        [(ngModel)]="stock"
+        type="number"
+        min="0"
+        placeholder="Stock"
+      />
+
+      <select [(ngModel)]="selectedCategoryId">
+
+        <option [ngValue]="null">
+          Sin categoría
+        </option>
+
+        <option
+          *ngFor="let c of categories"
+          [ngValue]="c.id"
+        >
+          {{ c.name }}
+        </option>
+
+      </select>
+
+      <div class="modal-actions">
+
+        <button
+          class="primary"
+          (click)="create()"
+        >
+          Crear
+        </button>
+
+        <button
+          class="cancel"
+          (click)="showCreateProductModal = false"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- CATEGORIES MODAL -->
+  <div
+    class="modal"
+    *ngIf="showCategoriesModal"
+  >
+
+    <div class="modal-content categories-modal">
+
+      <h3>Categorías</h3>
+
+      <div class="category-create">
+
+        <input
+          [(ngModel)]="newCategory"
+          placeholder="Nueva categoría"
+        />
+
+        <button
+          class="primary"
+          (click)="createCategory()"
+        >
+          Crear
+        </button>
+
+      </div>
+
+      <div class="categories-list">
+
+        <div
+          *ngFor="let c of categories"
+          class="category-item"
+        >
+
+          <span>{{ c.name }}</span>
+
+          <div class="actions">
+
+            <button
+              class="edit"
+              (click)="openCategoryEdit(c)"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="delete"
+              (click)="deleteCategory(c.id)"
+            >
+              🗑️
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        class="cancel close-btn"
+        (click)="showCategoriesModal = false"
+      >
+        Cerrar
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- EDIT PRODUCT MODAL -->
+  <div class="modal" *ngIf="editingProduct">
+
+    <div class="modal-content">
+
+      <h3>Editar producto</h3>
+
+      <input [(ngModel)]="editingProduct.name" />
+
+      <input
+        [(ngModel)]="editingProduct.price"
+        type="number"
+        min="0"
+      />
+
+      <input
+        [(ngModel)]="editingProduct.stock"
+        type="number"
+        min="0"
+      />
+
+      <select [(ngModel)]="editingProduct.categoryId">
+
+        <option [ngValue]="null">
+          Seleccionar categoría
+        </option>
+
+        <option
+          *ngFor="let c of categories"
+          [ngValue]="c.id"
+        >
+          {{ c.name }}
+        </option>
+
+      </select>
+
+      <div class="modal-actions">
+
+        <button (click)="update()">
+          Guardar
+        </button>
+
+        <button
+          class="cancel"
+          (click)="editingProduct = null"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- EDIT CATEGORY MODAL -->
+  <div class="modal" *ngIf="editingCategory">
+
+    <div class="modal-content">
+
+      <h3>Editar categoría</h3>
+
+      <input [(ngModel)]="editingCategoryName" />
+
+      <div class="modal-actions">
+
+        <button (click)="updateCategory()">
+          Guardar
+        </button>
+
+        <button
+          class="cancel"
+          (click)="editingCategory = null"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

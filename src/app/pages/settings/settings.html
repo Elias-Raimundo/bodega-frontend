@@ -1,0 +1,66 @@
+<div class="settings-container">
+
+  <div class="card">
+
+    <div class="company-header">
+
+      <!-- LOGO -->
+      <div class="logo-section">
+
+        <img
+          *ngIf="logoUrl"
+          [src]="logoUrl"
+          class="preview"
+        />
+
+        <div
+          *ngIf="!logoUrl"
+          class="empty-logo"
+        >
+          {{ companyName.charAt(0) }}
+        </div>
+
+        <label class="upload-btn">
+
+          Cambiar logo
+
+          <input
+            type="file"
+            (change)="onFileSelected($event)"
+            hidden
+          />
+
+        </label>
+
+      </div>
+
+      <!-- INFO -->
+      <div class="info-section">
+
+        <h2>⚙️ Configuración </h2>
+
+        <div class="form-group">
+
+          <label>Nombre empresa</label>
+
+          <input
+            [(ngModel)]="companyName"
+            placeholder="Ej: Kiosco"
+          />
+
+        </div>
+
+        <button
+          class="primary"
+          (click)="saveSettings()"
+        >
+          Guardar cambios
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,155 @@
+<div class="prepared-products">
+
+  <div class="header">
+    <h1>🍹 Tragos</h1>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="form-card">
+
+    <h3>
+      {{ editingId ? 'Editar preparado' : 'Nuevo preparado' }}
+    </h3>
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Nombre</label>
+
+        <input
+          type="text"
+          [(ngModel)]="form.name"
+          placeholder="Ej: Vaso de Fernet"
+        >
+      </div>
+
+      <div class="field">
+        <label>Precio</label>
+
+        <input
+          type="number"
+          [(ngModel)]="form.price"
+        >
+      </div>
+
+      <div class="field">
+        <label>Botella base</label>
+
+        <select [(ngModel)]="form.baseProductId">
+
+          <option [ngValue]="null">
+            Seleccionar
+          </option>
+
+          <option
+            *ngFor="let product of products"
+            [ngValue]="product.id"
+          >
+            {{ product.name }}
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="field">
+        <label>Vasos por botella</label>
+
+        <input
+          type="number"
+          [(ngModel)]="form.servingsPerUnit"
+        >
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+
+      <button
+        class="save-btn"
+        (click)="savePreparedProduct()"
+      >
+        {{
+          editingId
+            ? 'Actualizar preparado'
+            : 'Guardar preparado'
+        }}
+      </button>
+
+      <button
+        class="cancel-btn"
+        *ngIf="editingId"
+        (click)="cancelEdit()"
+      >
+        Cancelar
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- LISTA -->
+  <div class="table-card">
+
+    <h3>Preparados creados</h3>
+
+    <div
+      class="empty"
+      *ngIf="!preparedProducts.length"
+    >
+      No hay preparados registrados.
+    </div>
+
+    <div
+      class="prepared-row"
+      *ngFor="let prepared of preparedProducts"
+      [class.editing]="editingId === prepared.id"
+    >
+
+      <div class="prepared-info">
+
+        <div class="prepared-name">
+          {{ prepared.name }}
+        </div>
+
+        <div class="prepared-detail">
+
+          Base:
+          {{ prepared.baseProduct?.name }}
+
+          ·
+
+          {{ prepared.servingsPerUnit }}
+          vasos por botella
+
+        </div>
+
+      </div>
+
+      <div class="prepared-price">
+        ${{ prepared.price | number:'1.0-0' }}
+      </div>
+
+      <div class="prepared-actions">
+
+        <button
+          class="edit-btn"
+          (click)="editPreparedProduct(prepared)"
+        >
+          Editar
+        </button>
+
+        <button
+          class="delete-btn"
+          (click)="deletePreparedProduct(prepared.id)"
+        >
+          Eliminar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

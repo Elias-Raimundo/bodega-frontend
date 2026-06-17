@@ -1,0 +1,303 @@
+<div class="sales-layout">
+
+  <!-- IZQUIERDA -->
+  <div class="left-panel">
+
+    <h3>Artículos</h3>
+
+    <!-- FILTROS -->
+    <select [(ngModel)]="selectedCategoryId" class="select">
+      <option [ngValue]="null">Todas las categorías</option>
+
+      <option
+        *ngFor="let c of categories"
+        [ngValue]="c.id"
+      >
+        {{ c.name }}
+      </option>
+    </select>
+
+    <input
+      type="text"
+      [(ngModel)]="search"
+      placeholder="Buscar producto o preparado..."
+      class="search"
+    />
+
+    <div class="results-count">
+      {{ filteredProducts.length + filteredPreparedProducts.length }}
+      artículos
+    </div>
+
+    <!-- PREPARADOS -->
+    <div
+      class="prepared-section"
+      *ngIf="filteredPreparedProducts.length"
+    >
+
+      <div class="category-title">
+        Preparados
+      </div>
+
+      <div class="products-list">
+
+        <div
+          *ngFor="let prepared of filteredPreparedProducts"
+          class="product-row prepared-row"
+          (click)="addPreparedToCart(prepared)"
+        >
+
+          <div class="product-info">
+
+            <div class="p-name">
+              {{ prepared.name }}
+            </div>
+
+            <div class="p-stock">
+              Base:
+              {{ prepared.baseProduct?.name }}
+              ·
+              {{ prepared.servingsPerUnit }} vasos
+            </div>
+
+          </div>
+
+          <div class="product-right">
+
+            <div class="p-price">
+              ${{ prepared.price | number:'1.0-0' }}
+            </div>
+
+            <button class="add-btn">
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- PRODUCTOS -->
+    <div class="product-grid">
+
+      <div *ngFor="let group of groupedProducts() | keyvalue">
+
+        <div class="category-title">
+          {{ group.key }}
+        </div>
+
+        <div class="products-list">
+
+          <div
+            *ngFor="let p of group.value"
+            class="product-row"
+            [class.disabled]="p.stock === 0"
+            (click)="p.stock > 0 && addProductToCart(p)"
+          >
+
+            <div class="product-info">
+
+              <div class="p-name">
+                {{ p.name }}
+              </div>
+
+              <div
+                class="p-stock"
+                [class.low]="p.stock <= 2"
+              >
+                {{
+                  p.stock > 0
+                  ? 'Stock: ' + (p.stock | number:'1.0-2')
+                  : 'SIN STOCK'
+                }}
+              </div>
+
+            </div>
+
+            <div class="product-right">
+
+              <div class="p-price">
+                ${{ p.price | number:'1.0-0'}}
+              </div>
+
+              <button class="add-btn">
+                +
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- DERECHA -->
+  <div class="right-panel">
+
+    <h3>Pedido</h3>
+
+    <div
+      *ngIf="cart.length === 0"
+      class="empty"
+    >
+      No hay productos en el pedido
+    </div>
+
+    <!-- ITEMS -->
+    <div class="cart-items">
+
+      <div
+        *ngFor="let item of cart; trackBy: trackById"
+        class="cart-item"
+      >
+
+        <div class="item-info">
+
+          <div class="item-name">
+            {{ item.name }}
+          </div>
+
+          <div class="item-price">
+            ${{ item.price }}
+            <span
+              class="item-type"
+              *ngIf="item.itemType === 'PREPARED'"
+            >
+              Preparado
+            </span>
+          </div>
+
+        </div>
+
+        <div class="item-bottom">
+
+          <div class="qty">
+
+            <button (click)="decrease(item)">
+              −
+            </button>
+
+            <span>
+              {{ item.quantity }}
+            </span>
+
+            <button (click)="increase(item)">
+              +
+            </button>
+
+          </div>
+
+          <div class="subtotal">
+            ${{ item.price * item.quantity }}
+          </div>
+
+          <button
+            class="remove"
+            (click)="remove(item)"
+          >
+            ✕
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="cart-footer">
+
+      <div class="total">
+        ${{ getTotal() | number:'1.0-0' }}
+      </div>
+
+      <!-- PAGOS -->
+      <div class="payments">
+
+        <h4>Pagos</h4>
+
+        <div
+          *ngFor="let payment of payments; let i = index"
+          class="payment-row"
+        >
+
+          <select [(ngModel)]="payment.method">
+
+            <option value="CASH">
+              Efectivo
+            </option>
+
+            <option value="TRANSFER">
+              Transferencia
+            </option>
+
+            <option value="DEBIT">
+              Débito
+            </option>
+
+            <option value="CREDIT">
+              Crédito
+            </option>
+
+          </select>
+
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="payment.amount"
+            placeholder="Monto"
+          />
+
+          <button (click)="removePayment(i)">
+            ✕
+          </button>
+
+        </div>
+
+        <button
+          class="add-payment"
+          (click)="addPayment()"
+        >
+          + Agregar pago
+        </button>
+
+      </div>
+
+      <div class="payment-total">
+        Pagado:
+        ${{ getPaymentsTotal() }}
+      </div>
+
+      <div
+        *ngIf="
+          !paymentMethods()
+        "
+        class="payment-error"
+      >
+        El total no coincide
+      </div>
+
+      <button
+        class="checkout"
+        [disabled]="
+          cart.length === 0 ||
+          !paymentMethods() 
+        "
+        (click)="checkout()"
+      >
+        Vender
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

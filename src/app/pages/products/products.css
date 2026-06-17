@@ -1,0 +1,416 @@
+:host{
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+
+.products-container{
+  width: 100%;
+  padding: 24px;
+  color: white;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.page-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header h1{
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.header-actions{
+  display: flex;
+  gap: 12px;
+}
+
+/* =========================
+   CARDS
+========================= */
+
+.card{
+  background: rgba(17,25,40,0.72);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.35);
+
+  padding: 24px;
+
+  margin-bottom: 20px;
+}
+
+/* =========================
+   FILTERS
+========================= */
+
+.filters-bar{
+  display: grid;
+  grid-template-columns: 1.5fr 220px 220px;
+  gap: 12px;
+}
+
+.filters-bar input,
+.filters-bar select{
+  height: 52px;
+
+  border-radius: 14px;
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  background:
+    rgba(255,255,255,0.06);
+
+  color: white;
+
+  padding: 0 16px;
+
+  outline: none;
+
+  transition: 0.2s;
+}
+
+.filters-bar input:focus,
+.filters-bar select:focus{
+  border-color: #3b82f6;
+
+  box-shadow:
+    0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.filters-bar select option,
+.modal-content select option{
+  background: #111827;
+  color: white;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-card{
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+  padding: 10px 18px;
+}
+
+table{
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+
+  background:
+    rgba(17,25,40,0.98);
+
+  backdrop-filter: blur(12px);
+}
+
+th{
+  text-align: left;
+
+  color:
+    rgba(255,255,255,0.65);
+
+  font-weight: 600;
+}
+
+th,
+td{
+  padding: 12px 18px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.06);
+}
+
+tbody tr{
+  transition: 0.2s;
+}
+
+tbody tr:hover{
+  background:
+    rgba(59,130,246,0.08);
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.actions{
+  display: flex;
+  gap: 8px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.primary{
+  height: 50px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  color: white;
+
+  font-weight: 700;
+
+  transition: 0.2s;
+
+  background:
+    linear-gradient(
+      135deg,
+      #3b82f6,
+      #2563eb
+    );
+
+  box-shadow:
+    0 10px 24px rgba(37,99,235,0.35);
+}
+
+.primary:hover{
+  transform: translateY(-2px);
+}
+
+.secondary{
+  height: 50px;
+
+  padding: 0 18px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  color: white;
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  background:
+    rgba(255,255,255,0.06);
+
+  transition: 0.2s;
+}
+
+.secondary:hover{
+  background:
+    rgba(255,255,255,0.1);
+}
+
+.edit{
+  width: 38px;
+  height: 38px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  background: #facc15;
+}
+
+.delete{
+  width: 38px;
+  height: 38px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  background: #ef4444;
+
+  color: white;
+}
+
+.cancel{
+  height: 48px;
+
+  padding: 0 18px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  background: #6b7280;
+
+  color: white;
+}
+
+/* =========================
+   MODALS
+========================= */
+
+.modal{
+  position: fixed;
+
+  inset: 0;
+
+  background:
+    rgba(0,0,0,0.65);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+.modal-content{
+  width: 380px;
+
+  background:
+    rgba(17,25,40,0.95);
+
+  backdrop-filter: blur(20px);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  border-radius: 24px;
+
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.modal-content h3{
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.modal-content input,
+.modal-content select{
+  height: 50px;
+
+  border-radius: 14px;
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+
+  background:
+    rgba(255,255,255,0.06);
+
+  color: white;
+
+  padding: 0 14px;
+
+  outline: none;
+}
+
+.modal-actions{
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* =========================
+   CATEGORIES MODAL
+========================= */
+
+.categories-modal{
+  width: 500px;
+}
+
+.category-create{
+  display: flex;
+  gap: 10px;
+}
+
+.category-create input{
+  flex: 1;
+}
+
+.categories-list{
+  max-height: 320px;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.category-item{
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 14px;
+
+  border-radius: 14px;
+
+  background:
+    rgba(255,255,255,0.04);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+}
+
+.close-btn{
+  margin-top: 10px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px){
+
+  .filters-bar{
+    grid-template-columns: 1fr;
+  }
+
+  .page-header{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .header-actions{
+    width: 100%;
+  }
+
+  .header-actions button{
+    flex: 1;
+  }
+
+  .table-card{
+    height: auto;
+  }
+
+}

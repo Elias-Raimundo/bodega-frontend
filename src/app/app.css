@@ -1,0 +1,36 @@
+.app {
+  display: flex;
+  height: 100vh;
+  font-family: Arial;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NAVBAR (si lo usás) */
+.navbar {
+  height: 60px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* CONTENT */
+.content {
+  background: #f5f7fb;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  padding: 20px;
+  width: 100%;
+}

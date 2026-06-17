@@ -1,0 +1,98 @@
+<div class="container">
+  <div class="card">
+
+    <h2>Crear cuenta 🚀</h2>
+    <p class="subtitle">Configurá tu tienda</p>
+
+    <form (ngSubmit)="register()">
+
+      <input 
+        type="text" 
+        [(ngModel)]="companyName" 
+        name="companyName" 
+        placeholder="Nombre de la empresa" 
+        required 
+      />
+
+      <input 
+        type="email" 
+        [(ngModel)]="email" 
+        name="email" 
+        placeholder="Email" 
+        autofocus
+        required 
+      />
+
+      <div class="password-field">
+
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Contraseña"
+          autocomplete="new-password"
+          required
+        />
+
+        <button
+          type="button"
+          class="eye-btn"
+          (click)="showPassword = !showPassword"
+        >
+          <i
+            class="bi"
+            [class.bi-eye]="!showPassword"
+            [class.bi-eye-slash]="showPassword"
+          ></i>
+        </button>
+
+      </div>
+
+      <div class="password-field">
+
+        <input
+          [type]="showConfirmPassword ? 'text' : 'password'"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Confirmar contraseña"
+          autocomplete="new-password"
+          required
+        />
+
+        <button
+          type="button"
+          class="eye-btn"
+          (click)="showConfirmPassword = !showConfirmPassword"
+        >
+          <i
+            class="bi"
+            [class.bi-eye]="!showConfirmPassword"
+            [class.bi-eye-slash]="showConfirmPassword"
+          ></i>
+        </button>
+
+      </div>
+      <p 
+        class="error-text"
+        *ngIf="confirmPassword && password !== confirmPassword"
+      >
+        Las contraseñas no coinciden
+      </p>
+
+      <button type="submit" [disabled]="loading || password !== confirmPassword">
+
+        {{
+          loading
+            ? 'Creando cuenta...'
+            : 'Crear cuenta'
+        }}
+
+      </button>
+
+      <div class="links">
+        <a routerLink="/login">Ya tengo cuenta</a>
+      </div>
+
+    </form>
+  </div>
+</div>

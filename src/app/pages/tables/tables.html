@@ -1,0 +1,320 @@
+<div class="tables-page">
+
+  <div class="header">
+
+    <h1>🍷 Mesas</h1>
+
+    <div class="create-tables">
+
+      <input
+        type="number"
+        min="1"
+        [(ngModel)]="tableCount"
+      />
+
+      <button (click)="initTables()">
+        Crear mesas
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- GRID MESAS -->
+  <div class="tables-grid">
+
+    <div
+      *ngFor="let table of tables"
+      class="table-card"
+      [class.occupied]="table.occupied"
+      (click)="openTable(table)"
+    >
+
+      <button
+        class="delete-table"
+        (click)="deleteTable(table.id, $event)"
+      >
+        ✕
+      </button>
+
+      <div class="table-icon">
+        🍷
+      </div>
+
+      <div class="table-name">
+        {{ table.name }}
+      </div>
+
+      <div
+        class="table-status"
+        [class.busy]="table.occupied"
+      >
+        {{
+          table.occupied
+            ? 'Ocupada'
+            : 'Libre'
+        }}
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL -->
+  <div
+    class="modal-overlay"
+    *ngIf="selectedTable"
+  >
+
+    <div class="modal large-modal">
+
+      <div class="modal-header">
+
+        <input
+          class="table-name-input"
+          [(ngModel)]="selectedTable.name"
+          (blur)="updateTableName()"
+        />
+
+        <button
+          class="close-btn"
+          (click)="closeModal()"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="modal-content-grid">
+
+        <!-- IZQUIERDA: AGREGAR CONSUMOS -->
+        <div class="add-items-panel">
+
+          <h3>Agregar consumo</h3>
+
+          <input
+            class="search"
+            type="text"
+            [(ngModel)]="search"
+            placeholder="Buscar producto o preparado..."
+          />
+
+          <!-- PREPARADOS -->
+          <div
+            class="items-section"
+            *ngIf="filteredPreparedProducts.length"
+          >
+
+            <div class="section-title">
+              Preparados
+            </div>
+
+            <div
+              class="add-item-row prepared"
+              *ngFor="let prepared of filteredPreparedProducts"
+              (click)="addPreparedToTable(prepared)"
+            >
+
+              <div>
+                <strong>{{ prepared.name }}</strong>
+
+                <span>
+                  Base:
+                  {{ prepared.baseProduct?.name }}
+                </span>
+              </div>
+
+              <b>
+                ${{ prepared.price | number:'1.0-0'}}
+              </b>
+
+            </div>
+
+          </div>
+
+          <!-- PRODUCTOS -->
+          <div
+            class="items-section"
+            *ngIf="filteredProducts.length"
+          >
+
+            <div class="section-title">
+              Productos
+            </div>
+
+            <div
+              class="add-item-row"
+              *ngFor="let product of filteredProducts"
+              [class.disabled]="product.stock <= 0"
+              (click)="product.stock > 0 && addProductToTable(product)"
+            >
+
+              <div>
+                <strong>{{ product.name }}</strong>
+
+                <span>
+                  Stock:
+                  {{ product.stock | number:'1.0-2' }}
+                </span>
+              </div>
+
+              <b>
+                ${{ product.price | number:'1.0-0' }}
+              </b>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- DERECHA: PEDIDO -->
+        <div
+          class="order-panel"
+          *ngIf="selectedOrder"
+        >
+
+          <h3>Pedido actual</h3>
+
+          <div
+            *ngIf="selectedOrder.items?.length === 0"
+            class="empty-order"
+          >
+            No hay consumos cargados
+          </div>
+
+          <div
+            *ngFor="let item of selectedOrder.items"
+            class="order-item"
+          >
+
+            <div class="order-item-info">
+
+              <span>
+                {{ item.productName }}
+              </span>
+
+              <div class="qty">
+
+                <button (click)="decreaseItem(item)">
+                  -
+                </button>
+
+                <strong>
+                  {{ item.quantity }}
+                </strong>
+
+                <button (click)="increaseItem(item)">
+                  +
+                </button>
+
+              </div>
+
+            </div>
+
+            <div class="order-actions">
+
+              <strong>
+                ${{ item.price * item.quantity }}
+              </strong>
+
+              <button
+                class="remove-item"
+                (click)="removeItem(item.id); $event.stopPropagation()"
+              >
+                ✕
+              </button>
+
+            </div>
+
+          </div>
+
+          <div class="order-total">
+            Total:
+            ${{ getOrderTotal() | number:'1.0-0'}}
+          </div>
+
+          <!-- PAGOS -->
+          <div class="payments">
+
+            <h3>Pagos</h3>
+
+            <div
+              class="payment-row"
+              *ngFor="let payment of payments; let i = index"
+            >
+
+              <select [(ngModel)]="payment.method">
+
+                <option value="CASH">
+                  Efectivo
+                </option>
+
+                <option value="TRANSFER">
+                  Transferencia
+                </option>
+
+                <option value="DEBIT">
+                  Débito
+                </option>
+
+                <option value="CREDIT">
+                  Crédito
+                </option>
+
+              </select>
+
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="payment.amount"
+                placeholder="Monto"
+              />
+
+              <button (click)="removePayment(i)">
+                ✕
+              </button>
+
+            </div>
+
+            <button
+              class="add-payment"
+              (click)="addPayment()"
+            >
+              + Agregar pago
+            </button>
+
+          </div>
+
+          <div class="payment-total">
+            Pagado:
+            ${{ getPaymentsTotal() | number:'1.0-0'}}
+          </div>
+
+          <div
+            class="payment-error"
+            *ngIf="!paymentsMatch()"
+          >
+            El total pagado no coincide
+          </div>
+
+          <button
+            class="close-table-btn"
+            [disabled]="
+              selectedOrder.items?.length === 0 ||
+              !paymentsMatch()
+            "
+            (click)="closeTable()"
+          >
+            Cerrar mesa
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

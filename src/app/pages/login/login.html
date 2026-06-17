@@ -1,0 +1,56 @@
+<div class="container">
+  <div class="card">
+
+    <h2>Bienvenido 👋</h2>
+    <p class="subtitle">Iniciá sesión en tu bodega</p>
+
+    <form (ngSubmit)="login()">
+
+      <input 
+        type="email" 
+        [(ngModel)]="email" 
+        name="email" 
+        placeholder="Correo electrónico"
+        autocomplete="email"
+        required 
+      />
+
+      <div class="password-field">
+
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Contraseña"
+          autocomplete="current-password"
+          required
+        />
+
+        <button
+          type="button"
+          class="eye-btn"
+          (click)="showPassword = !showPassword"
+        >
+          <i
+            class="bi"
+            [class.bi-eye]="!showPassword"
+            [class.bi-eye-slash]="showPassword"
+          ></i>
+        </button>
+
+      </div>
+
+      <button type="submit" [disabled]="loading">
+
+        {{ loading ? 'Ingresando...' : 'Ingresar' }}
+
+      </button>
+
+      <div class="links">
+        <a routerLink="/register">Crear cuenta</a>
+        <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+      </div>
+
+    </form>
+  </div>
+</div>
