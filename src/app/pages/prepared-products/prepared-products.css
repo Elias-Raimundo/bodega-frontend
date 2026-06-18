@@ -215,7 +215,78 @@
   color:
     rgba(255,255,255,0.5);
 }
+/* INGREDIENTES */
+.ingredients-box{
+  margin-bottom: 24px;
+}
 
+.ingredients-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.ingredients-header h4{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ingredient-row{
+  display: grid;
+  grid-template-columns: 1fr 180px 48px;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.add-ingredient-btn{
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.remove-ingredient-btn{
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  background: #ef4444;
+}
+
+.remove-ingredient-btn:hover{
+  background: #dc2626;
+}
+
+.remove-ingredient-btn:disabled{
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px){
+  .ingredient-row{
+    grid-template-columns: 1fr;
+  }
+
+  .remove-ingredient-btn{
+    width: 100%;
+  }
+
+  .ingredients-header{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
 /* RESPONSIVE */
 
 @media (max-width: 900px){

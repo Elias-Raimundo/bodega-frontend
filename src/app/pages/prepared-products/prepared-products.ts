@@ -43,6 +43,17 @@ export class PreparedProducts implements OnInit {
     return localStorage.getItem('token');
   }
 
+  getPayload() {
+    return {
+      name: this.form.name,
+      price: this.form.price,
+      ingredients: this.form.ingredients.map(i => ({
+        productId: i.productId,
+        quantity: 1 / Number(i.quantity)
+      }))
+    };
+  }
+
   loadPreparedProducts() {
     const token = this.getToken();
 
@@ -88,8 +99,18 @@ export class PreparedProducts implements OnInit {
   }
 
   savePreparedProduct() {
+    if (!this.form.name.trim()) {
+      alert('El nombre es obligatorio');
+      return;
+    }
+
+    if (this.form.price < 0) {
+      alert('El precio no puede ser negativo');
+      return;
+    }
+
     if (this.form.ingredients.some(i => !i.productId || i.quantity <= 0)) {
-      alert('Todos los ingredientes deben tener producto y cantidad mayor a cero');
+      alert('Todos los ingredientes deben tener producto y vasos que rinde mayor a cero');
       return;
     }
 
@@ -105,7 +126,7 @@ export class PreparedProducts implements OnInit {
 
     this.http.post(
       'https://bodega-backend-9c4f.onrender.com/prepared-products',
-      this.form,
+      this.getPayload(),
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -126,7 +147,7 @@ export class PreparedProducts implements OnInit {
       price: prepared.price,
       ingredients: prepared.ingredients?.map((i: any) => ({
         productId: i.product?.id || null,
-        quantity: i.quantity
+        quantity: i.quantity ? 1 / i.quantity : 1
       })) || [
         {
           productId: null,
@@ -145,7 +166,7 @@ export class PreparedProducts implements OnInit {
 
     this.http.put(
       `https://bodega-backend-9c4f.onrender.com/prepared-products/${this.editingId}`,
-      this.form,
+      this.getPayload(),
       {
         headers: {
           Authorization: `Bearer ${token}`
@@ -206,7 +227,10 @@ export class PreparedProducts implements OnInit {
     }
 
     return prepared.ingredients
-      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
+      .map((i: any) => {
+        const vasos = i.quantity ? 1 / i.quantity : 0;
+        return `${i.product?.name} - rinde ${vasos.toFixed(0)} vasos`;
+      })
       .join(' + ');
   }
 }
