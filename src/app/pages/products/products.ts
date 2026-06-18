@@ -13,7 +13,9 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './products.html',
   styleUrl: './products.css'
 })
-export class Products  implements OnInit {
+export class Products implements OnInit {
+
+  private apiUrl = 'https://bodega-backend-9c4f.onrender.com';
 
   products: any[] = [];
 
@@ -33,14 +35,22 @@ export class Products  implements OnInit {
 
   editingCategory: any = null;
   editingCategoryName = '';
-  
+
   sortBy = 'name';
 
   showCreateProductModal = false;
   showCategoriesModal = false;
   stockFilter = 'all';
 
-  constructor(private http: HttpClient, private router:Router, private cdr: ChangeDetectorRef, private toastr: ToastrService) {}
+  selectedImportFile: File | null = null;
+  importing = false;
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit() {
     this.load();
@@ -48,24 +58,21 @@ export class Products  implements OnInit {
 
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => { 
-        this.load(); 
+      .subscribe(() => {
+        this.load();
       });
   }
-  
-  load() {
-    console.log('Cargando productos...');
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/products')
-      .subscribe(res => {
-        console.log('Productos cargados:', res);
-        this.products = res;
 
+  load() {
+    this.http.get<any[]>(`${this.apiUrl}/products`)
+      .subscribe(res => {
+        this.products = res;
         this.cdr.detectChanges();
       });
   }
 
   loadCategories() {
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/categories')
+    this.http.get<any[]>(`${this.apiUrl}/categories`)
       .subscribe(res => {
         this.categories = res;
         this.cdr.detectChanges();
@@ -77,16 +84,14 @@ export class Products  implements OnInit {
       this.toastr.error('El stock no puede ser negativo');
       return;
     }
-    this.http.post('https://bodega-backend-9c4f.onrender.com/products', {
+
+    this.http.post(`${this.apiUrl}/products`, {
       name: this.name,
       price: this.price,
       stock: this.stock,
-      categoryId: this.selectedCategoryId 
+      categoryId: this.selectedCategoryId
     }).subscribe(() => {
-
-      this.toastr.success(
-        'Producto creado correctamente'
-      );
+      this.toastr.success('Producto creado correctamente');
 
       this.name = '';
       this.price = null;
@@ -95,21 +100,17 @@ export class Products  implements OnInit {
 
       this.load();
     });
-  };
-
+  }
 
   delete(id: number) {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    this.http.delete(`https://bodega-backend-9c4f.onrender.com/products/${id}`)
+
+    this.http.delete(`${this.apiUrl}/products/${id}`)
       .subscribe(() => {
-
-      this.toastr.error(
-        'Producto eliminado'
-      );
-
-      this.load();
-    });
-  };
+        this.toastr.error('Producto eliminado');
+        this.load();
+      });
+  }
 
   openEdit(p: any) {
     this.editingProduct = {
@@ -132,15 +133,10 @@ export class Products  implements OnInit {
 
   updateCategory() {
     this.http.put(
-      `https://bodega-backend-9c4f.onrender.com/categories/${this.editingCategory.id}`,
-      {
-        name: this.editingCategoryName
-      }
+      `${this.apiUrl}/categories/${this.editingCategory.id}`,
+      { name: this.editingCategoryName }
     ).subscribe(() => {
-
-      this.toastr.info(
-        'Categoría actualizada'
-      );
+      this.toastr.info('Categoría actualizada');
 
       this.editingCategory = null;
       this.editingCategoryName = '';
@@ -150,19 +146,14 @@ export class Products  implements OnInit {
   }
 
   deleteCategory(id: number) {
-
     if (!confirm('¿Eliminar categoría?')) return;
 
-    this.http.delete(`https://bodega-backend-9c4f.onrender.com/categories/${id}`)
+    this.http.delete(`${this.apiUrl}/categories/${id}`)
       .subscribe(() => {
-
-        this.toastr.error(
-          'Categoría eliminada'
-        );
+        this.toastr.error('Categoría eliminada');
 
         this.loadCategories();
         this.load();
-
       });
   }
 
@@ -171,26 +162,81 @@ export class Products  implements OnInit {
       this.toastr.error('El stock no puede ser negativo');
       return;
     }
-    this.http.put(`https://bodega-backend-9c4f.onrender.com/products/${this.editingProduct.id}`,{
+
+    this.http.put(`${this.apiUrl}/products/${this.editingProduct.id}`, {
       name: this.editingProduct.name,
       price: this.editingProduct.price,
       stock: this.editingProduct.stock,
       categoryId: this.editingProduct.categoryId
-    })
-      .subscribe(() => {
+    }).subscribe(() => {
+      this.toastr.info('Producto actualizado');
 
-        this.toastr.info(
-          'Producto actualizado'
-        );
+      this.editingProduct = null;
 
-        this.editingProduct = null;
+      this.load();
+    });
+  }
+
+  onImportFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      this.selectedImportFile = null;
+      return;
+    }
+
+    const file = input.files[0];
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      this.toastr.error('El archivo debe ser CSV');
+      this.selectedImportFile = null;
+      input.value = '';
+      return;
+    }
+
+    this.selectedImportFile = file;
+  }
+
+  importProducts() {
+    if (!this.selectedImportFile) {
+      this.toastr.error('Seleccioná un archivo CSV');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', this.selectedImportFile);
+
+    this.importing = true;
+
+    this.http.post(
+      `${this.apiUrl}/products/import`,
+      formData,
+      { responseType: 'text' }
+    ).subscribe({
+      next: (res: string) => {
+        this.toastr.success(res || 'Productos importados correctamente');
+
+        this.selectedImportFile = null;
+        this.importing = false;
 
         this.load();
-      });
-  };
+        this.loadCategories();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.importing = false;
+
+        const msg =
+          err?.error?.error ||
+          err?.error ||
+          'Error importando productos';
+
+        this.toastr.error(msg);
+      }
+    });
+  }
 
   filteredProducts() {
-
     let filtered = this.products.filter(p => {
 
       const matchSearch =
@@ -240,6 +286,7 @@ export class Products  implements OnInit {
             .localeCompare(b.category?.name || '')
         );
         break;
+
       case 'lessStock':
         filtered.sort((a,b) =>
           a.stock - b.stock
@@ -252,20 +299,18 @@ export class Products  implements OnInit {
 
   createCategory() {
     if (!this.newCategory.trim()) return;
-    this.http.post('https://bodega-backend-9c4f.onrender.com/categories', {
+
+    this.http.post(`${this.apiUrl}/categories`, {
       name: this.newCategory
     }).subscribe(() => {
-
-      this.toastr.success(
-        'Categoría creada'
-      );
+      this.toastr.success('Categoría creada');
 
       this.newCategory = '';
 
       this.loadCategories();
     });
   }
-  
+
   toNumber(value: any): number {
     return Number(value);
   }
