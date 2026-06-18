@@ -20,61 +20,13 @@
     <input
       type="text"
       [(ngModel)]="search"
-      placeholder="Buscar producto o preparado..."
+      placeholder="Buscar producto..."
       class="search"
     />
 
     <div class="results-count">
-      {{ filteredProducts.length + filteredPreparedProducts.length }}
+      {{ filteredProducts.length }}
       artículos
-    </div>
-
-    <!-- PREPARADOS -->
-    <div
-      class="prepared-section"
-      *ngIf="filteredPreparedProducts.length"
-    >
-
-      <div class="category-title">
-        Preparados
-      </div>
-
-      <div class="products-list">
-
-        <div
-          *ngFor="let prepared of filteredPreparedProducts"
-          class="product-row prepared-row"
-          (click)="addPreparedToCart(prepared)"
-        >
-
-          <div class="product-info product-line">
-
-            <div class="p-name">
-              {{ prepared.name }}
-            </div>
-
-            <div class="p-stock">
-              {{ getIngredientText(prepared) }} 
-            </div>
-
-          </div>
-
-          <div class="product-right">
-
-            <div class="p-price">
-              ${{ prepared.price | number:'1.0-0' }}
-            </div>
-
-            <button class="add-btn">
-              +
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
     </div>
 
     <!-- PRODUCTOS -->
@@ -161,12 +113,6 @@
 
           <div class="item-price">
             ${{ item.price }}
-            <span
-              class="item-type"
-              *ngIf="item.itemType === 'PREPARED'"
-            >
-              Preparado
-            </span>
           </div>
 
         </div>

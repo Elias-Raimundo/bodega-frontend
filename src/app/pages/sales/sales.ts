@@ -15,7 +15,6 @@ import { ToastrService } from 'ngx-toastr';
 export class Sales implements OnInit {
 
   products: any[] = [];
-  preparedProducts: any[] = [];
 
   cart: any[] = [];
   search = '';
@@ -38,7 +37,7 @@ export class Sales implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
-    this.loadPreparedProducts();
+
   }
 
   loadProducts() {
@@ -73,26 +72,6 @@ export class Sales implements OnInit {
     });
   }
 
-  loadPreparedProducts() {
-    const token = localStorage.getItem('token');
-
-    this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/prepared-products',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    ).subscribe({
-      next: (res) => {
-        this.preparedProducts = res;
-        this.cd.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching prepared products:', err);
-      }
-    });
-  }
 
   get filteredProducts() {
     return this.products
@@ -106,13 +85,6 @@ export class Sales implements OnInit {
       );
   }
 
-  get filteredPreparedProducts() {
-    return this.preparedProducts
-      .filter(p =>
-        p.name.toLowerCase()
-          .includes(this.search.toLowerCase())
-      );
-  }
 
   addProductToCart(product: any) {
     const existing = this.cart.find(
@@ -136,26 +108,7 @@ export class Sales implements OnInit {
     }
   }
 
-  addPreparedToCart(prepared: any) {
-    const existing = this.cart.find(
-      p =>
-        p.itemType === 'PREPARED' &&
-        p.preparedProductId === prepared.id
-    );
 
-    if (existing) {
-      existing.quantity++;
-    } else {
-      this.cart.push({
-        itemType: 'PREPARED',
-        preparedProductId: prepared.id,
-        name: prepared.name,
-        quantity: 1,
-        price: prepared.price,
-        stock: null
-      });
-    }
-  }
 
   getTotal() {
     return this.cart.reduce(
@@ -223,7 +176,7 @@ export class Sales implements OnInit {
     ];
 
     this.loadProducts();
-    this.loadPreparedProducts();
+    // this.loadPreparedProducts();
   }
 
   increase(item: any) {
@@ -301,13 +254,4 @@ export class Sales implements OnInit {
     return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01 ;
   }
 
-  getIngredientText(prepared: any) {
-    if (!prepared.ingredients || prepared.ingredients.length === 0) {
-      return 'Sin ingredientes';
-    }
-
-    return prepared.ingredients
-      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
-      .join(' + ');
-  }
 }
