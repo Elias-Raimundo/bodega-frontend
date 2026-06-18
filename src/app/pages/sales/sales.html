@@ -47,16 +47,13 @@
           (click)="addPreparedToCart(prepared)"
         >
 
-          <div class="product-info">
+          <div class="product-info product-line">
 
             <div class="p-name">
               {{ prepared.name }}
             </div>
 
             <div class="p-stock">
-              Base:
-              {{ prepared.baseProduct?.name }}
-              ·
               {{ prepared.servingsPerUnit }} vasos
             </div>
 
@@ -98,16 +95,13 @@
             (click)="p.stock > 0 && addProductToCart(p)"
           >
 
-            <div class="product-info">
+            <div class="product-info product-line">
 
               <div class="p-name">
                 {{ p.name }}
               </div>
 
-              <div
-                class="p-stock"
-                [class.low]="p.stock <= 2"
-              >
+              <div class="p-stock">
                 {{
                   p.stock > 0
                   ? 'Stock: ' + (p.stock | number:'1.0-2')
@@ -182,7 +176,7 @@
           <div class="qty">
 
             <button (click)="decrease(item)">
-              −
+              -
             </button>
 
             <span>

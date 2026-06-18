@@ -6,7 +6,7 @@
 
 .sales-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) 420px;
+  grid-template-columns: minmax(0, 1.3fr) 580px;
   gap: 18px;
   height: calc(100vh - 90px);
   padding: 18px;
@@ -131,6 +131,9 @@ option {
 
 .product-info {
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .p-name {
@@ -139,17 +142,19 @@ option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
 }
 
 .p-stock {
-  margin-top: 4px;
+  margin-top: 0;
   font-size: 12px;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.65);
+  white-space: nowrap;
 }
 
 .p-stock.low {
-  color: #f87171;
-  font-weight: 700;
+  color: rgba(255,255,255,0.65);
+  font-weight: 400;
 }
 
 .product-right {
@@ -191,6 +196,7 @@ option {
   flex-direction: column;
   gap: 9px;
   padding-right: 4px;
+  min-height: 300px;
 }
 
 .cart-item {
@@ -356,6 +362,7 @@ option {
   color: #f87171;
   font-weight: 800;
 }
+
 
 @media (max-width: 1100px) {
   .sales-layout {
