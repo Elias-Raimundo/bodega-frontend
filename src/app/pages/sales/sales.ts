@@ -300,4 +300,14 @@ export class Sales implements OnInit {
   paymentMethods() {
     return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01 ;
   }
+
+  getIngredientText(prepared: any) {
+    if (!prepared.ingredients || prepared.ingredients.length === 0) {
+      return 'Sin ingredientes';
+    }
+
+    return prepared.ingredients
+      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
+      .join(' + ');
+  }
 }

@@ -219,12 +219,27 @@ export class Tables implements OnInit {
         p => p.id === item.preparedProductId
       );
 
-      const maxServings =
-        prepared?.baseProduct?.stock * prepared?.servingsPerUnit;
-
-      if (prepared && item.quantity >= maxServings) {
-        alert('No hay más stock disponible para este preparado');
+      if (!prepared || !prepared.ingredients || prepared.ingredients.length === 0) {
+        alert('Este preparado no tiene ingredientes');
         return;
+      }
+
+      const newQuantity = item.quantity + 1;
+
+      for (const ingredient of prepared.ingredients) {
+        const product = ingredient.product;
+
+        if (!product) {
+          alert('Ingrediente inválido');
+          return;
+        }
+
+        const stockNeeded = ingredient.quantity * newQuantity;
+
+        if (product.stock < stockNeeded) {
+          alert(`No hay más stock disponible de ${product.name}`);
+          return;
+        }
       }
     }
 
@@ -454,5 +469,15 @@ export class Tables implements OnInit {
         acc + item.price * item.quantity,
       0
     );
+  }
+
+  getIngredientText(prepared: any) {
+    if (!prepared.ingredients || prepared.ingredients.length === 0) {
+      return 'Sin ingredientes';
+    }
+
+    return prepared.ingredients
+      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
+      .join(' + ');
   }
 }

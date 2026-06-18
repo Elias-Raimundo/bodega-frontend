@@ -19,7 +19,7 @@
         <input
           type="text"
           [(ngModel)]="form.name"
-          placeholder="Ej: Vaso de Fernet"
+          placeholder="Ej: Fernet con Coca"
         >
       </div>
 
@@ -32,33 +32,66 @@
         >
       </div>
 
-      <div class="field">
-        <label>Botella base</label>
+    </div>
 
-        <select [(ngModel)]="form.baseProductId">
+    <div class="ingredients-box">
 
-          <option [ngValue]="null">
-            Seleccionar
-          </option>
+      <div class="ingredients-header">
+        <h4>Ingredientes</h4>
 
-          <option
-            *ngFor="let product of products"
-            [ngValue]="product.id"
-          >
-            {{ product.name }}
-          </option>
-
-        </select>
-
+        <button
+          class="add-ingredient-btn"
+          (click)="addIngredient()"
+        >
+          + Ingrediente
+        </button>
       </div>
 
-      <div class="field">
-        <label>Vasos por botella</label>
+      <div
+        class="ingredient-row"
+        *ngFor="let ingredient of form.ingredients; let i = index"
+      >
 
-        <input
-          type="number"
-          [(ngModel)]="form.servingsPerUnit"
+        <div class="field">
+          <label>Producto</label>
+
+          <select [(ngModel)]="ingredient.productId">
+
+            <option [ngValue]="null">
+              Seleccionar producto
+            </option>
+
+            <option
+              *ngFor="let product of products"
+              [ngValue]="product.id"
+            >
+              {{ product.name }}
+            </option>
+
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Cantidad que descuenta</label>
+
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            [(ngModel)]="ingredient.quantity"
+            placeholder="Ej: 0.15"
+          >
+        </div>
+
+        <button
+          class="remove-ingredient-btn"
+          type="button"
+          (click)="removeIngredient(i)"
+          [disabled]="form.ingredients.length === 1"
         >
+          ✕
+        </button>
+
       </div>
 
     </div>
@@ -113,15 +146,7 @@
         </div>
 
         <div class="prepared-detail">
-
-          Base:
-          {{ prepared.baseProduct?.name }}
-
-          ·
-
-          {{ prepared.servingsPerUnit }}
-          vasos por botella
-
+          {{ getIngredientText(prepared) }}
         </div>
 
       </div>

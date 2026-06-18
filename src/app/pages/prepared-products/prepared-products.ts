@@ -21,8 +21,12 @@ export class PreparedProducts implements OnInit {
   form = {
     name: '',
     price: 0,
-    servingsPerUnit: 1,
-    baseProductId: null as number | null
+    ingredients: [
+      {
+        productId: null as number | null,
+        quantity: 1
+      }
+    ]
   };
 
   constructor(
@@ -71,7 +75,24 @@ export class PreparedProducts implements OnInit {
     });
   }
 
+  addIngredient() {
+    this.form.ingredients.push({
+      productId: null,
+      quantity: 1
+    });
+  }
+
+  removeIngredient(index: number) {
+    if (this.form.ingredients.length === 1) return;
+    this.form.ingredients.splice(index, 1);
+  }
+
   savePreparedProduct() {
+    if (this.form.ingredients.some(i => !i.productId || i.quantity <= 0)) {
+      alert('Todos los ingredientes deben tener producto y cantidad mayor a cero');
+      return;
+    }
+
     if (this.editingId) {
       this.updatePreparedProduct();
     } else {
@@ -103,8 +124,15 @@ export class PreparedProducts implements OnInit {
     this.form = {
       name: prepared.name,
       price: prepared.price,
-      servingsPerUnit: prepared.servingsPerUnit,
-      baseProductId: prepared.baseProduct?.id || null
+      ingredients: prepared.ingredients?.map((i: any) => ({
+        productId: i.product?.id || null,
+        quantity: i.quantity
+      })) || [
+        {
+          productId: null,
+          quantity: 1
+        }
+      ]
     };
 
     this.cdRef.detectChanges();
@@ -141,8 +169,12 @@ export class PreparedProducts implements OnInit {
     this.form = {
       name: '',
       price: 0,
-      servingsPerUnit: 1,
-      baseProductId: null
+      ingredients: [
+        {
+          productId: null,
+          quantity: 1
+        }
+      ]
     };
   }
 
@@ -166,5 +198,15 @@ export class PreparedProducts implements OnInit {
       this.loadPreparedProducts();
       this.cdRef.detectChanges();
     });
+  }
+
+  getIngredientText(prepared: any) {
+    if (!prepared.ingredients || prepared.ingredients.length === 0) {
+      return 'Sin ingredientes';
+    }
+
+    return prepared.ingredients
+      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
+      .join(' + ');
   }
 }
