@@ -196,7 +196,7 @@ option {
   flex-direction: column;
   gap: 9px;
   padding-right: 4px;
-  min-height: 300px;
+  min-height: 0;
 }
 
 .cart-item {
@@ -290,6 +290,8 @@ option {
 }
 
 .total {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 12px;
   text-align: right;
   font-size: 36px;
   font-weight: 900;
