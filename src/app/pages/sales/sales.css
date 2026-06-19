@@ -31,10 +31,10 @@
 }
 
 .right-panel {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   max-height: calc(100vh - 126px);
+  overflow: hidden;
 }
 
 h3 {
@@ -191,13 +191,13 @@ option {
 }
 
 .cart-items {
-  max-height: 260px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 9px;
   padding-right: 4px;
   min-height: 0;
+  max-height: none;
 }
 
 .cart-item {
@@ -282,19 +282,18 @@ option {
 }
 
 .cart-footer {
-  margin-top: 14px;
   border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 14px;
+  padding-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .total {
   border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 12px;
+  padding-top: 10px;
   text-align: right;
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 900;
   color: white;
 }
@@ -317,7 +316,7 @@ option {
 
 .payment-row select,
 .payment-row input {
-  height: 42px;
+  height: 38px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.08);
@@ -327,7 +326,7 @@ option {
 }
 
 .payment-row button {
-  height: 42px;
+  height: 38px;
   border: none;
   border-radius: 12px;
   background: #ef4444;
@@ -337,7 +336,7 @@ option {
 
 .add-payment,
 .checkout {
-  height: 46px;
+  height: 42px;
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
