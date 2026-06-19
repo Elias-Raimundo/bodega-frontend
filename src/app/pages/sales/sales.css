@@ -31,9 +31,10 @@
 }
 
 .right-panel {
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 126px);
 }
 
 h3 {
@@ -190,7 +191,7 @@ option {
 }
 
 .cart-items {
-  flex: 1;
+  max-height: 260px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
