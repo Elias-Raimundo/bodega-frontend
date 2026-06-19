@@ -6,7 +6,7 @@
 
 .sales-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) 580px;
+  grid-template-columns: minmax(0, 1.3fr) 620px;
   gap: 18px;
   height: calc(100vh - 90px);
   padding: 18px;
@@ -194,17 +194,16 @@ option {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 6px;
   padding-right: 4px;
   min-height: 0;
-  max-height: none;
 }
 
 .cart-item {
   background: rgba(255,255,255,0.045);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 14px;
+  padding: 8px 10px;
 }
 
 .item-info {
@@ -235,7 +234,7 @@ option {
 }
 
 .item-bottom {
-  margin-top: 10px;
+  margin-top: 6px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -249,8 +248,8 @@ option {
 }
 
 .qty button {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border: none;
   border-radius: 10px;
   background: rgba(255,255,255,0.1);
