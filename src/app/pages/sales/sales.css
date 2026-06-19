@@ -363,6 +363,33 @@ option {
   font-weight: 800;
 }
 
+.summary-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255,255,255,0.75);
+  font-size: 15px;
+}
+
+.discount-box{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.discount-box label{
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+}
+
+.discount-box input{
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  padding: 0 12px;
+}
 
 @media (max-width: 1100px) {
   .sales-layout {

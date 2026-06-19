@@ -23,6 +23,8 @@ export class Tables implements OnInit {
 
   search = '';
 
+  discount = 0;
+
   payments = [
     {
       method: 'CASH',
@@ -380,7 +382,7 @@ export class Tables implements OnInit {
 
   paymentsMatch() {
     return Math.abs(
-      this.getPaymentsTotal() - this.getOrderTotal()
+      this.getPaymentsTotal() - this.getTotalWithDiscount()
     ) <= 0.01;
   }
 
@@ -396,7 +398,8 @@ export class Tables implements OnInit {
     this.http.post(
       `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/close`,
       {
-        payments: this.payments
+        payments: this.payments,
+        discount: Number(this.discount) || 0
       },
       {
         headers: {
@@ -408,6 +411,7 @@ export class Tables implements OnInit {
         this.selectedTable = null;
         this.selectedOrder = null;
         this.search = '';
+        this.discount = 0;
 
         this.payments = [
           {
@@ -432,6 +436,7 @@ export class Tables implements OnInit {
     this.selectedTable = null;
     this.selectedOrder = null;
     this.search = '';
+    this.discount = 0;
 
     this.payments = [
       {
@@ -470,6 +475,15 @@ export class Tables implements OnInit {
       0
     );
   }
+
+  getTotalWithDiscount() {
+    const discount = Number(this.discount) || 0;
+    return Math.max(
+      this.getOrderTotal() - discount,
+      0
+    );
+  }
+
 
   getIngredientText(prepared: any) {
     if (!prepared.ingredients || prepared.ingredients.length === 0) {

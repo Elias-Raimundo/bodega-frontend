@@ -18,7 +18,7 @@ export class Sales implements OnInit {
 
   cart: any[] = [];
   search = '';
-
+  discount = 0;
   categories: any[] = [];
   selectedCategoryId: number | null = null;
 
@@ -109,14 +109,6 @@ export class Sales implements OnInit {
   }
 
 
-
-  getTotal() {
-    return this.cart.reduce(
-      (acc, p) => acc + p.quantity * p.price,
-      0
-    );
-  }
-
   checkout() {
     if (this.cart.length === 0) {
       return;
@@ -143,7 +135,8 @@ export class Sales implements OnInit {
       'https://bodega-backend-9c4f.onrender.com/sales',
       {
         items,
-        payments: this.payments
+        payments: this.payments,
+        discount: Number(this.discount) || 0
       },
       {
         headers: {
@@ -167,7 +160,7 @@ export class Sales implements OnInit {
     this.toastr.success('Venta realizada');
 
     this.cart = [];
-
+    this.discount = 0;
     this.payments = [
       {
         method: 'CASH',
@@ -254,4 +247,17 @@ export class Sales implements OnInit {
     return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01 ;
   }
 
+  getSubtotal(){
+    return this.cart.reduce(
+      (acc, p) => acc + p.quantity * p.price,
+      0
+    );
+  }
+
+  getTotal(){
+    const subtotal = this.getSubtotal();
+    const discount = Number(this.discount) || 0;
+
+    return Math.max(subtotal - discount, 0);
+  }
 }

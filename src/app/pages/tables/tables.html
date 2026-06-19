@@ -1,5 +1,4 @@
 <div class="tables-page">
-
   <div class="header">
 
     <h1>🍷 Mesas</h1>
@@ -17,12 +16,10 @@
       </button>
 
     </div>
-
   </div>
 
   <!-- GRID MESAS -->
   <div class="tables-grid">
-
     <div
       *ngFor="let table of tables"
       class="table-card"
@@ -55,9 +52,7 @@
             : 'Libre'
         }}
       </div>
-
     </div>
-
   </div>
 
   <!-- MODAL -->
@@ -228,9 +223,30 @@
 
           </div>
 
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong>${{ getOrderTotal() | number:'1.0-0' }}</strong>
+          </div>
+
+          <div class="discount-box">
+            <label>Descuento</label>
+
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="discount"
+              placeholder="0"
+            />
+          </div>
+
+          <div class="summary-row">
+            <span>Descuento</span>
+            <strong>${{ discount || 0 | number:'1.0-0' }}</strong>
+          </div>
+
           <div class="order-total">
             Total:
-            ${{ getOrderTotal() | number:'1.0-0'}}
+            ${{ getTotalWithDiscount() | number:'1.0-0'}}
           </div>
 
           <!-- PAGOS -->
@@ -309,11 +325,7 @@
           </button>
 
         </div>
-
       </div>
-
     </div>
-
   </div>
-
 </div>
