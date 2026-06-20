@@ -498,4 +498,26 @@ export class Reports implements OnInit {
       0
     );
   }
+
+  getReportSubtotal() {
+    if (!this.report?.sales) {
+      return 0;
+    }
+
+    return this.report.sales.reduce(
+      (acc: number, sale: any) => acc + Number(sale.subtotal ?? sale.total ?? 0),
+      0
+    );
+  }
+
+  getReportDiscount() {
+    if (!this.report?.sales) {
+      return 0;
+    }
+
+    return this.report.sales.reduce(
+      (acc: number, sale: any) => acc + Number(sale.discount ?? 0),
+      0
+    );
+  }
 }

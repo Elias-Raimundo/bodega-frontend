@@ -167,6 +167,7 @@
           type="number"
           min="0"
           [(ngModel)]="discount"
+          (ngModelChange)="saveCart()"
           placeholder="0"
         />
       </div>
@@ -186,7 +187,11 @@
           class="payment-row"
         >
 
-          <select [(ngModel)]="payment.method">
+          <select 
+            [(ngModel)]="payment.method"
+            (ngModelChange) = "saveCart()"
+          
+          >
 
             <option value="CASH">
               Efectivo
@@ -210,6 +215,7 @@
             type="number"
             min="0"
             [(ngModel)]="payment.amount"
+            (ngModelChange) = "saveCart"
             placeholder="Monto"
           />
 

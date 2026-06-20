@@ -36,8 +36,8 @@ export class Sales implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadCart();
     this.loadProducts();
-
   }
 
   loadProducts() {
@@ -72,7 +72,6 @@ export class Sales implements OnInit {
     });
   }
 
-
   get filteredProducts() {
     return this.products
       .filter(p =>
@@ -84,7 +83,6 @@ export class Sales implements OnInit {
         p.category?.id === this.selectedCategoryId
       );
   }
-
 
   addProductToCart(product: any) {
     const existing = this.cart.find(
@@ -106,8 +104,9 @@ export class Sales implements OnInit {
         stock: product.stock
       });
     }
-  }
 
+    this.saveCart();
+  }
 
   checkout() {
     if (this.cart.length === 0) {
@@ -150,7 +149,9 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error backend:', err);
-        this.toastr.error('Error al realizar la venta');
+        this.toastr.error(
+          err.error?.message || err.error || 'Error al realizar la venta'
+        );
         this.cd.detectChanges();
       }
     });
@@ -168,19 +169,21 @@ export class Sales implements OnInit {
       }
     ];
 
+    this.clearCartStorage();
     this.loadProducts();
-    // this.loadPreparedProducts();
   }
 
   increase(item: any) {
     if (item.itemType === 'PRODUCT') {
       if (item.quantity < item.stock) {
         item.quantity++;
+        this.saveCart();
       }
       return;
     }
 
     item.quantity++;
+    this.saveCart();
   }
 
   decrease(item: any) {
@@ -188,7 +191,10 @@ export class Sales implements OnInit {
 
     if (item.quantity <= 0) {
       this.remove(item);
+      return;
     }
+
+    this.saveCart();
   }
 
   trackById(index: number, item: any) {
@@ -219,6 +225,8 @@ export class Sales implements OnInit {
         p.preparedProductId === item.preparedProductId
       )
     );
+
+    this.saveCart();
   }
 
   addPayment() {
@@ -226,6 +234,8 @@ export class Sales implements OnInit {
       method: 'TRANSFER',
       amount: 0
     });
+
+    this.saveCart();
   }
 
   removePayment(index: number) {
@@ -234,6 +244,7 @@ export class Sales implements OnInit {
     }
 
     this.payments.splice(index, 1);
+    this.saveCart();
   }
 
   getPaymentsTotal() {
@@ -244,20 +255,54 @@ export class Sales implements OnInit {
   }
 
   paymentMethods() {
-    return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01 ;
+    return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01;
   }
 
-  getSubtotal(){
+  getSubtotal() {
     return this.cart.reduce(
       (acc, p) => acc + p.quantity * p.price,
       0
     );
   }
 
-  getTotal(){
+  getTotal() {
     const subtotal = this.getSubtotal();
     const discount = Number(this.discount) || 0;
 
     return Math.max(subtotal - discount, 0);
+  }
+
+  saveCart() {
+    localStorage.setItem(
+      'sales_cart',
+      JSON.stringify({
+        cart: this.cart,
+        payments: this.payments,
+        discount: this.discount
+      })
+    );
+  }
+
+  loadCart() {
+    const saved = localStorage.getItem('sales_cart');
+
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+
+    this.cart = data.cart || [];
+
+    this.payments = data.payments || [
+      {
+        method: 'CASH',
+        amount: 0
+      }
+    ];
+
+    this.discount = data.discount || 0;
+  }
+
+  clearCartStorage() {
+    localStorage.removeItem('sales_cart');
   }
 }
