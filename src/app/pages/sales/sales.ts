@@ -130,7 +130,7 @@ export class Sales implements OnInit {
       quantity: p.quantity
     }));
 
-    this.http.post(
+    this.http.post<any>(
       'https://bodega-backend-9c4f.onrender.com/sales',
       {
         items,
@@ -143,7 +143,11 @@ export class Sales implements OnInit {
         }
       }
     ).subscribe({
-      next: () => {
+      next: (res) => {
+        if (!res || !res.id) {
+          this.toastr.error('La venta no se guardo correctamente');
+          return;
+        }
         this.handleSuccess();
         this.cd.detectChanges();
       },
