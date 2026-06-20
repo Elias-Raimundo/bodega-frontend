@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -14,20 +14,22 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class Settings {
 
+  defaultLogo = 'assets/logo-default.png';
   companyName = '';
-  logoUrl = '';
+  logoUrl = this.defaultLogo;
 
   constructor(
     private http: HttpClient,
     private companyService: CompanyService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private cdRef: ChangeDetectorRef
   ) {
 
     const company = this.companyService.getCompany();
 
     if (company) {
       this.companyName = company.name;
-      this.logoUrl = company.logo;
+      this.logoUrl = company.logo || this.defaultLogo;
     }
   }
 
@@ -46,6 +48,7 @@ export class Settings {
       this.toastr.success(
         'Configuración guardada'
       );
+      this.cdRef.detectChanges();
     });
   }
 
@@ -64,8 +67,15 @@ export class Settings {
     reader.readAsDataURL(file);
   }
 
-  upload() {
+  onLogoError() {
+    this.logoUrl = this.defaultLogo;
+  }
 
+  upload() {
+    if (!this.logoUrl){
+      this.logoUrl = this.defaultLogo;
+    }
+    
     this.http.post<any>(
       'https://bodega-backend-9c4f.onrender.com/companies/logo',
       {
@@ -79,6 +89,7 @@ export class Settings {
       this.toastr.success(
         'Logo actualizado'
       );
+      this.cdRef.detectChanges();
     });
   }
 }

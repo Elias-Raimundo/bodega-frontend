@@ -194,7 +194,7 @@ option {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px;
   padding-right: 4px;
   min-height: 0;
 }

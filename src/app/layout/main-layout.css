@@ -16,7 +16,6 @@
   flex-direction: column;
 }
 
-
 .topbar {
   height: 82px;
   background:
@@ -32,7 +31,6 @@
   top: 0;
   z-index: 100;
 }
-
 
 .company {
   display: flex;

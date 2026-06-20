@@ -8,17 +8,11 @@
       <div class="left company">
 
         <img
-          *ngIf="logo"
-          [src]="logo"
+          [src]="logo || defaultLogo"
           class="company-logo"
+          alt="Logo de la empresa"
+          (error)="onLogoError()"
         />
-
-        <div
-          *ngIf="!logo"
-          class="company-avatar"
-        >
-          {{ companyName.charAt(0) }}
-        </div>
 
         <span>{{ companyName }}</span>
 
@@ -26,13 +20,13 @@
 
       <!-- CENTER -->
       <div class="center">
-        <a routerLink="/sales">Ventas</a>
-        <a routerLink="/tables"> Mesas</a>
-        <a routerLink="/products">Productos</a>
-        <a routerLink="/prepared-products">Tragos</a>
-        <a routerLink="/dashboard">Inicio</a>
-        <a routerLink="/reports">Reportes</a>
-        <a routerLink="/settings">Ajustes</a>
+        <a routerLink="/sales" routerLinkActive="active">Ventas</a>
+        <a routerLink="/tables" routerLinkActive="active"> Mesas</a>
+        <a routerLink="/products" routerLinkActive="active">Productos</a>
+        <a routerLink="/prepared-products" routerLinkActive="active">Tragos</a>
+        <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
+        <a routerLink="/reports" routerLinkActive="active">Reportes</a>
+        <a routerLink="/settings" routerLinkActive="active">Ajustes</a>
       </div>
 
       <!-- RIGHT -->
