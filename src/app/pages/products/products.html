@@ -186,13 +186,16 @@
         [(ngModel)]="name"
         placeholder="Nombre"
       />
-
-      <input
-        [(ngModel)]="price"
-        type="number"
-        min="0"
-        placeholder="Precio"
-      />
+      
+      <div class ="price-input">
+        <span>$</span>
+        <input
+          [(ngModel)]="price"
+          type="number"
+          min="0"
+          placeholder="Precio"
+        />
+      </div>
 
       <input
         [(ngModel)]="stock"
@@ -320,12 +323,14 @@
         type="number"
         min="0"
       />
-
-      <input
-        [(ngModel)]="editingProduct.stock"
-        type="number"
-        min="0"
-      />
+      <div class = "price-input">
+        <span>$</span>
+        <input
+          [(ngModel)]="editingProduct.stock"
+          type="number"
+          min="0"
+        />
+      </div>
 
       <select [(ngModel)]="editingProduct.categoryId">
 
