@@ -317,20 +317,21 @@
       <h3>Editar producto</h3>
 
       <input [(ngModel)]="editingProduct.name" />
-
-      <input
-        [(ngModel)]="editingProduct.price"
-        type="number"
-        min="0"
-      />
       <div class = "price-input">
         <span>$</span>
+        <input
+          [(ngModel)]="editingProduct.price"
+          type="number"
+          min="0"
+        />
+      </div>
+      
         <input
           [(ngModel)]="editingProduct.stock"
           type="number"
           min="0"
         />
-      </div>
+      
 
       <select [(ngModel)]="editingProduct.categoryId">
 
