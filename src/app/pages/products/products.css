@@ -3,17 +3,13 @@
   width: 100%;
   height: 100%;
 }
-/* =========================
-   CONTAINER
-========================= */
+
 .products-container{
   width: 100%;
   padding: 24px;
   color: white;
 }
-/* =========================
-   HEADER
-========================= */
+
 .page-header{
   display: flex;
   justify-content: space-between;
@@ -45,9 +41,6 @@
   margin-bottom: 20px;
 }
 
-/* =========================
-   IMPORT CSV
-========================= */
 .import-card{
   display: flex;
   justify-content: space-between;
@@ -106,9 +99,7 @@
   cursor: not-allowed;
   transform: none;
 }
-/* =========================
-   FILTERS
-========================= */
+
 .filters-bar{
   display: grid;
   grid-template-columns: 1.5fr 220px 220px;
@@ -325,9 +316,7 @@ tbody tr:hover{
   gap: 10px;
   margin-top: 10px;
 }
-/* =========================
-   CATEGORIES MODAL
-========================= */
+
 .categories-modal{
   width: 500px;
 }
@@ -365,9 +354,29 @@ tbody tr:hover{
 .close-btn{
   margin-top: 10px;
 }
-/* =========================
-   RESPONSIVE
-========================= */
+
+.price-input {
+  position: relative;
+  width: 100%;
+}
+
+.price-input span {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.price-input input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 38px;
+}
+
 @media (max-width: 1100px){
 
   .filters-bar{
@@ -401,29 +410,8 @@ tbody tr:hover{
     align-items: stretch;
   }
 
-.price-input {
-  position: relative;
-  width: 100%;
-}
-
-.price-input span {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255,255,255,0.75);
-  font-weight: 700;
-  z-index: 2;
-}
-
-.price-input input {
-  width: 100%;
-  box-sizing: border-box;
-  padding-left: 38px;
-}
-
   .import-actions input[type="file"]{
-    width: 100%;
-    margin-right: 0;
+      width: 100%;
+      margin-right: 0;
   }
 }
