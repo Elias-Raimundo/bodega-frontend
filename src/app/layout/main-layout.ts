@@ -14,11 +14,8 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class MainLayout implements OnInit {
 
-
   companyName = '';
-  defaultLogo = 'assets/logo-default.png';
-  collapsed = false;
-  logo: string = this.defaultLogo;
+  logo: string | null = null;
 
   constructor(
     private http: HttpClient, 
@@ -30,7 +27,7 @@ export class MainLayout implements OnInit {
   ngOnInit() {
     this.companyService.company$.subscribe(company => {
       if (company) {
-        this.logo = company.logo || this.defaultLogo;
+        this.logo = company.logo || null;
         this.companyName = company.name;
         this.cdRef.detectChanges();
       }
@@ -45,7 +42,7 @@ export class MainLayout implements OnInit {
          }
       }).subscribe( res =>{
         this.companyService.setCompany(res);
-        this.logo = res.logo || this.defaultLogo;
+        this.logo = res.logo || null;
         this.companyName = res.name;
         this.cdRef.detectChanges();
       });
@@ -53,7 +50,7 @@ export class MainLayout implements OnInit {
   }
   
   onLogoError() {
-    this.logo = this.defaultLogo;
+    this.logo = null;
   }
 
   logout() {

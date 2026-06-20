@@ -5,11 +5,19 @@
       <div class="logo-section">
 
         <img
-          [src]="logoUrl || defaultLogo"
+          *ngIf="logoUrl"
+          [src]="logoUrl"
           class="preview"
           alt="Logo de la empresa"
           (error)="onLogoError()"
         />
+
+        <div
+          *ngIf="!logoUrl"
+          class="empty-logo"
+        >
+          {{ companyName ? companyName.charAt(0).toUpperCase() : '?' }}
+        </div>
 
         <label class="upload-btn">
           Cambiar logo

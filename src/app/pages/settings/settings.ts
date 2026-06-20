@@ -14,9 +14,8 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class Settings {
 
-  defaultLogo = 'assets/logo-default.png';
   companyName = '';
-  logoUrl = this.defaultLogo;
+  logoUrl: string | null = null;
 
   constructor(
     private http: HttpClient,
@@ -29,7 +28,7 @@ export class Settings {
 
     if (company) {
       this.companyName = company.name;
-      this.logoUrl = company.logo || this.defaultLogo;
+      this.logoUrl = company.logo || null;
     }
   }
 
@@ -68,12 +67,15 @@ export class Settings {
   }
 
   onLogoError() {
-    this.logoUrl = this.defaultLogo;
+    this.logoUrl = null;
   }
 
   upload() {
     if (!this.logoUrl){
-      this.logoUrl = this.defaultLogo;
+      this.toastr.error(
+        'No se ha seleccionado un logo'
+      );
+      return;
     }
     
     this.http.post<any>(
@@ -85,6 +87,7 @@ export class Settings {
     ).subscribe((res) => {
 
       this.companyService.setCompany(res);
+      this.logoUrl = res.logo || null;
 
       this.toastr.success(
         'Logo actualizado'

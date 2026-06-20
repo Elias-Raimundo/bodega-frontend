@@ -8,11 +8,19 @@
       <div class="left company">
 
         <img
-          [src]="logo || defaultLogo"
+          *ngIf="logo"
+          [src]="logo"
           class="company-logo"
           alt="Logo de la empresa"
           (error)="onLogoError()"
         />
+
+        <div
+          *ngIf="!logo"
+          class="company-avatar"
+        >
+          {{ companyName ? companyName.charAt(0).toUpperCase() : '?' }}
+        </div>
 
         <span>{{ companyName }}</span>
 

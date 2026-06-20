@@ -95,7 +95,6 @@ input {
   padding: 0 18px;
   font-size: 16px;
   color: white;
-
   background:
     rgba(255,255,255,0.06);
 
@@ -111,14 +110,10 @@ input:focus {
 }
 
 .primary {
-
   width: 100%;
   height: 54px;
-
   border: none;
-
   border-radius: 16px;
-
   background:
     linear-gradient(
       135deg,
@@ -127,26 +122,18 @@ input:focus {
     );
 
   color: white;
-
   font-weight: 700;
-
   cursor: pointer;
-
   transition: 0.2s;
-
   box-shadow:
     0 8px 22px rgba(37,99,235,0.35);
 }
 
 .primary:hover {
-
   transform: translateY(-2px);
 }
 
-/* UPLOAD */
-
 .upload-btn {
-
   background:
     rgba(255,255,255,0.08);
 
@@ -154,16 +141,12 @@ input:focus {
     12px 18px;
 
   border-radius: 12px;
-
   cursor: pointer;
-
   transition: 0.2s;
-
   font-size: 14px;
 }
 
 .upload-btn:hover {
-
   background:
     rgba(255,255,255,0.14);
 }
