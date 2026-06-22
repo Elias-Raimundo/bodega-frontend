@@ -16,6 +16,8 @@ export class PreparedProducts implements OnInit {
   preparedProducts: any[] = [];
   products: any[] = [];
 
+  search = '';
+
   editingId: number | null = null;
 
   form = {
@@ -86,6 +88,13 @@ export class PreparedProducts implements OnInit {
     });
   }
 
+  get filteredPreparedProducts() {
+    return this.preparedProducts.filter(p =>
+      p.name?.toLowerCase()
+        .includes(this.search.toLowerCase())
+    );
+  }
+  
   addIngredient() {
     this.form.ingredients.push({
       productId: null,

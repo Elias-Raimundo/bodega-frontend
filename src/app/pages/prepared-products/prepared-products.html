@@ -127,6 +127,13 @@
 
     <h3>Preparados creados</h3>
 
+    <input
+      type="text"
+      class="search"
+      [(ngModel)]="search"
+      placeholder="Buscar trago..."
+    />
+
     <div
       class="empty"
       *ngIf="!preparedProducts.length"
@@ -135,8 +142,15 @@
     </div>
 
     <div
+      class="empty"
+      *ngIf="preparedProducts.length && !filteredPreparedProducts.length"
+    >
+      No hay preparados con ese nombre.
+    </div>
+
+    <div
       class="prepared-row"
-      *ngFor="let prepared of preparedProducts"
+      *ngFor="let prepared of filteredPreparedProducts"
       [class.editing]="editingId === prepared.id"
     >
 
