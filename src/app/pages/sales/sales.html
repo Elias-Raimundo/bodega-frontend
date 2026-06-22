@@ -189,7 +189,7 @@
 
           <select 
             [(ngModel)]="payment.method"
-            (ngModelChange) = "saveCart()"
+            (ngModelChange)="saveCart()"
           
           >
 
@@ -209,6 +209,10 @@
               Crédito
             </option>
 
+            <option value="CURRENT_ACCOUNT">
+              Cuenta corriente
+            </option>
+
           </select>
 
           <input
@@ -223,6 +227,41 @@
             ✕
           </button>
 
+        </div>
+
+        <div
+          class="current-account-box"
+          *ngIf="hasCurrentAccountPayment()"
+        >
+          <label>Cliente cuenta corriente</label>
+
+          <select
+            [(ngModel)]="selectedCustomerId"
+            (ngModelChange)="saveCart()"
+          >
+            <option [ngValue]="null">
+              Seleccionar cliente
+            </option>
+
+            <option
+              *ngFor="let customer of customers"
+              [ngValue]="customer.id"
+            >
+              {{ customer.name }} - debe ${{ customer.balance | number:'1.0-0' }}
+            </option>
+          </select>
+
+          <div class="quick-customer">
+            <input
+              type="text"
+              [(ngModel)]="newCustomerName"
+              placeholder="Nuevo cliente"
+            />
+
+            <button (click)="createQuickCustomer()">
+              + Crear
+            </button>
+          </div>
         </div>
 
         <button

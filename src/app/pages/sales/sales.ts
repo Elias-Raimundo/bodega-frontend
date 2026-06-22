@@ -15,12 +15,16 @@ import { ToastrService } from 'ngx-toastr';
 export class Sales implements OnInit {
 
   products: any[] = [];
+  customers: any[] = [];
 
   cart: any[] = [];
   search = '';
   discount = 0;
   categories: any[] = [];
   selectedCategoryId: number | null = null;
+
+  selectedCustomerId: number | null = null;
+  newCustomerName = '';
 
   payments = [
     {
@@ -38,17 +42,24 @@ export class Sales implements OnInit {
   ngOnInit() {
     this.loadCart();
     this.loadProducts();
+    this.loadCustomers();
+  }
+
+  getToken() {
+    return localStorage.getItem('token');
+  }
+
+  getHeaders() {
+    return {
+      Authorization: `Bearer ${this.getToken()}`
+    };
   }
 
   loadProducts() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
       'https://bodega-backend-9c4f.onrender.com/products',
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: this.getHeaders()
       }
     ).subscribe({
       next: (res) => {
@@ -68,6 +79,23 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error fetching products:', err);
+      }
+    });
+  }
+
+  loadCustomers() {
+    this.http.get<any[]>(
+      'https://bodega-backend-9c4f.onrender.com/customers',
+      {
+        headers: this.getHeaders()
+      }
+    ).subscribe({
+      next: (res) => {
+        this.customers = res;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando clientes:', err);
       }
     });
   }
@@ -113,12 +141,15 @@ export class Sales implements OnInit {
       return;
     }
 
+    if (this.hasCurrentAccountPayment() && !this.selectedCustomerId) {
+      this.toastr.warning('Debe seleccionar un cliente para cuenta corriente');
+      return;
+    }
+
     if (Math.abs(this.getPaymentsTotal() - this.getTotal()) > 0.01) {
       this.toastr.warning('El total pagado no coincide');
       return;
     }
-
-    const token = localStorage.getItem('token');
 
     const items = this.cart.map(p => ({
       itemType: p.itemType,
@@ -135,19 +166,21 @@ export class Sales implements OnInit {
       {
         items,
         payments: this.payments,
-        discount: Number(this.discount) || 0
+        discount: Number(this.discount) || 0,
+        customerId: this.hasCurrentAccountPayment()
+          ? this.selectedCustomerId
+          : null
       },
       {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: this.getHeaders()
       }
     ).subscribe({
       next: (res) => {
         if (!res || !res.id) {
-          this.toastr.error('La venta no se guardo correctamente');
+          this.toastr.error('La venta no se guardó correctamente');
           return;
         }
+
         this.handleSuccess();
         this.cd.detectChanges();
       },
@@ -166,6 +199,9 @@ export class Sales implements OnInit {
 
     this.cart = [];
     this.discount = 0;
+    this.selectedCustomerId = null;
+    this.newCustomerName = '';
+
     this.payments = [
       {
         method: 'CASH',
@@ -175,6 +211,7 @@ export class Sales implements OnInit {
 
     this.clearCartStorage();
     this.loadProducts();
+    this.loadCustomers();
   }
 
   increase(item: any) {
@@ -248,6 +285,11 @@ export class Sales implements OnInit {
     }
 
     this.payments.splice(index, 1);
+
+    if (!this.hasCurrentAccountPayment()) {
+      this.selectedCustomerId = null;
+    }
+
     this.saveCart();
   }
 
@@ -260,6 +302,44 @@ export class Sales implements OnInit {
 
   paymentMethods() {
     return Math.abs(this.getPaymentsTotal() - this.getTotal()) <= 0.01;
+  }
+
+  hasCurrentAccountPayment() {
+    return this.payments.some(
+      p => p.method === 'CURRENT_ACCOUNT'
+    );
+  }
+
+  createQuickCustomer() {
+    if (!this.newCustomerName.trim()) {
+      this.toastr.warning('Ingrese el nombre del cliente');
+      return;
+    }
+
+    this.http.post<any>(
+      'https://bodega-backend-9c4f.onrender.com/customers',
+      {
+        name: this.newCustomerName
+      },
+      {
+        headers: this.getHeaders()
+      }
+    ).subscribe({
+      next: (res) => {
+        this.customers.push(res);
+        this.selectedCustomerId = res.id;
+        this.newCustomerName = '';
+        this.saveCart();
+        this.toastr.success('Cliente creado');
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error creando cliente:', err);
+        this.toastr.error(
+          err.error?.message || err.error || 'Error creando cliente'
+        );
+      }
+    });
   }
 
   getSubtotal() {
@@ -282,7 +362,8 @@ export class Sales implements OnInit {
       JSON.stringify({
         cart: this.cart,
         payments: this.payments,
-        discount: this.discount
+        discount: this.discount,
+        selectedCustomerId: this.selectedCustomerId
       })
     );
   }
@@ -304,6 +385,7 @@ export class Sales implements OnInit {
     ];
 
     this.discount = data.discount || 0;
+    this.selectedCustomerId = data.selectedCustomerId || null;
   }
 
   clearCartStorage() {

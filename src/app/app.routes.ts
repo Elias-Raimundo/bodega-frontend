@@ -26,6 +26,7 @@ export const routes: Routes = [
             { path: 'sales-history', loadComponent: () => import('./pages/sales-history/sales-history').then(m => m.SalesHistoryComponent) },
             { path: 'tables', loadComponent: () => import('./pages/tables/tables').then(m => m.Tables) },
             { path: 'reports', loadComponent: () => import('./pages/reports/reports').then(m => m.Reports) },
+            { path: 'customers', loadComponent: () => import('./pages/customers/customers').then(m => m.Customers) },
 
         ]
     },

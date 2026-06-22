@@ -1,0 +1,185 @@
+<div class="customers-page">
+
+  <div class="header">
+    <h1>👥 Cuenta Corriente</h1>
+
+    <button
+      class="primary"
+      (click)="showCreateModal = true"
+    >
+      + Cliente
+    </button>
+  </div>
+
+  <div class="stats-card">
+    <span>Deuda total</span>
+    <strong>${{ getTotalDebt() | number:'1.0-0' }}</strong>
+  </div>
+
+  <div class="card">
+    <input
+      class="search"
+      type="text"
+      [(ngModel)]="search"
+      placeholder="Buscar cliente..."
+    />
+  </div>
+
+  <div class="card customers-list">
+
+    <div
+      class="empty"
+      *ngIf="filteredCustomers.length === 0"
+    >
+      No hay clientes registrados.
+    </div>
+
+    <div
+      class="customer-row"
+      *ngFor="let customer of filteredCustomers"
+      (click)="openCustomer(customer)"
+    >
+      <div>
+        <strong>{{ customer.name }}</strong>
+        <span>{{ customer.notes || 'Sin notas' }}</span>
+      </div>
+
+      <b [class.debt]="customer.balance > 0">
+        ${{ customer.balance | number:'1.0-0' }}
+      </b>
+    </div>
+
+  </div>
+
+  <!-- MODAL CREAR -->
+  <div
+    class="modal-overlay"
+    *ngIf="showCreateModal"
+  >
+    <div class="modal">
+
+      <h3>Nuevo cliente</h3>
+
+      <input
+        type="text"
+        [(ngModel)]="newCustomerName"
+        placeholder="Nombre"
+      />
+
+      <input
+        type="text"
+        [(ngModel)]="newCustomerNotes"
+        placeholder="Notas opcionales"
+      />
+
+      <div class="modal-actions">
+        <button
+          class="primary"
+          (click)="createCustomer()"
+        >
+          Crear
+        </button>
+
+        <button
+          class="cancel"
+          (click)="showCreateModal = false"
+        >
+          Cancelar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL CLIENTE -->
+  <div
+    class="modal-overlay"
+    *ngIf="selectedCustomer"
+  >
+    <div class="modal large-modal">
+
+      <div class="modal-header">
+        <div>
+          <h3>{{ selectedCustomer.name }}</h3>
+          <span>Saldo actual</span>
+        </div>
+
+        <button
+          class="close-btn"
+          (click)="closeCustomer()"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div
+        class="balance-big"
+        [class.debt]="selectedCustomer.balance > 0"
+      >
+        ${{ selectedCustomer.balance | number:'1.0-0' }}
+      </div>
+
+      <div class="movement-form">
+
+        <input
+          type="number"
+          min="0"
+          [(ngModel)]="movementAmount"
+          placeholder="Monto"
+        />
+
+        <input
+          type="text"
+          [(ngModel)]="movementDescription"
+          placeholder="Descripción"
+        />
+
+        <div class="movement-actions">
+          <button
+            class="debt-btn"
+            (click)="addDebt()"
+          >
+            + Agregar deuda
+          </button>
+
+          <button
+            class="payment-btn"
+            (click)="addPayment()"
+          >
+            Registrar pago
+          </button>
+        </div>
+
+      </div>
+
+      <h3>Historial</h3>
+
+      <div
+        class="empty"
+        *ngIf="movements.length === 0"
+      >
+        No hay movimientos.
+      </div>
+
+      <div
+        class="movement-row"
+        *ngFor="let movement of movements"
+      >
+        <div>
+          <strong>{{ getMovementLabel(movement.type) }}</strong>
+          <span>{{ movement.description }}</span>
+          <small>{{ movement.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+
+        <b
+          [class.debt]="movement.type === 'DEBT'"
+          [class.payment]="movement.type === 'PAYMENT'"
+        >
+          {{ movement.type === 'PAYMENT' ? '-' : '+' }}${{ movement.amount | number:'1.0-0' }}
+        </b>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -399,6 +399,88 @@ option {
   color: white;
   padding: 0 12px;
 }
+/* =========================
+   CUENTA CORRIENTE
+========================= */
+
+.current-account-box{
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.current-account-box label{
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+}
+
+.current-account-box select,
+.current-account-box input{
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.08);
+  color: white;
+  padding: 0 12px;
+  outline: none;
+}
+
+.current-account-box select option{
+  background: #111827;
+  color: white;
+}
+
+.quick-customer{
+  display: flex;
+  gap: 10px;
+}
+
+.quick-customer input{
+  flex: 1;
+}
+
+.quick-customer button{
+  height: 42px;
+  padding: 0 14px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #22c55e,
+    #16a34a
+  );
+
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.quick-customer button:hover{
+  transform: translateY(-2px);
+}
+
+@media (max-width: 700px){
+
+  .quick-customer{
+    flex-direction: column;
+  }
+
+  .quick-customer button{
+    width: 100%;
+  }
+
+}
 
 @media (max-width: 1100px) {
   .sales-layout {
