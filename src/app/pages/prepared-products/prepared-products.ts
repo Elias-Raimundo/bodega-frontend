@@ -26,7 +26,8 @@ export class PreparedProducts implements OnInit {
     ingredients: [
       {
         productId: null as number | null,
-        quantity: 1
+        quantity: 1,
+        search: ''
       }
     ]
   };
@@ -94,12 +95,13 @@ export class PreparedProducts implements OnInit {
         .includes(this.search.toLowerCase())
     );
   }
-  
+
   addIngredient() {
     this.form.ingredients.push({
       productId: null,
-      quantity: 1
-    });
+      quantity: 1,
+      search: ''
+    } as any);
   }
 
   removeIngredient(index: number) {
@@ -156,11 +158,13 @@ export class PreparedProducts implements OnInit {
       price: prepared.price,
       ingredients: prepared.ingredients?.map((i: any) => ({
         productId: i.product?.id || null,
-        quantity: i.quantity ? 1 / i.quantity : 1
+        quantity: i.quantity ? 1 / i.quantity : 1,
+        search: i.product?.name || ''
       })) || [
         {
           productId: null,
-          quantity: 1
+          quantity: 1,
+          search: ''
         }
       ]
     };
@@ -202,7 +206,8 @@ export class PreparedProducts implements OnInit {
       ingredients: [
         {
           productId: null,
-          quantity: 1
+          quantity: 1,
+          search: ''
         }
       ]
     };
@@ -241,5 +246,13 @@ export class PreparedProducts implements OnInit {
         return `${i.product?.name} - rinde ${vasos.toFixed(0)} vasos`;
       })
       .join(' + ');
+  }
+
+  filteredIngredientProducts(ingredient: any) {
+    const term = (ingredient.search || '').trim().toLowerCase();
+    if (!term) return [];
+    return this.products.filter(p =>
+      p.name?.toLowerCase().includes(term)
+    );
   }
 }

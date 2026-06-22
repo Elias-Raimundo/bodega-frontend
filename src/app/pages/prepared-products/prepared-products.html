@@ -56,19 +56,23 @@
         <div class="field">
           <label>Producto</label>
 
-          <select [(ngModel)]="ingredient.productId">
+          <input
+            type="text"
+            [(ngModel)]="ingredient.search"
+            placeholder="Buscar producto..."
+          />
 
+          <select [(ngModel)]="ingredient.productId">
             <option [ngValue]="null">
               Seleccionar producto
             </option>
 
             <option
-              *ngFor="let product of products"
+              *ngFor="let product of filteredIngredientProducts(ingredient)"
               [ngValue]="product.id"
             >
               {{ product.name }}
             </option>
-
           </select>
         </div>
 
