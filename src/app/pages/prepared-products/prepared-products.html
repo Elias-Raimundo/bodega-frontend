@@ -62,18 +62,24 @@
             placeholder="Buscar producto..."
           />
 
-          <select [(ngModel)]="ingredient.productId">
-            <option [ngValue]="null">
-              Seleccionar producto
-            </option>
-
-            <option
+          <div
+            class="product-results"
+            *ngIf="ingredient.search && filteredIngredientProducts(ingredient).length"
+          >
+            <div
+              class="product-result"
               *ngFor="let product of filteredIngredientProducts(ingredient)"
-              [ngValue]="product.id"
+              (click)="selectIngredientProduct(ingredient, product)"
             >
               {{ product.name }}
-            </option>
-          </select>
+            </div>
+          </div>
+          <div
+            class="selected-product"
+            *ngIf="ingredient.productId"
+          >
+            Producto seleccionado: {{ ingredient.search }}
+          </div>
         </div>
 
         <div class="field">

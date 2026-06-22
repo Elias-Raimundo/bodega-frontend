@@ -255,4 +255,9 @@ export class PreparedProducts implements OnInit {
       p.name?.toLowerCase().includes(term)
     );
   }
+
+  selectIngredientProduct(ingredient: any, product: any) {
+    ingredient.productId = product.id;
+    ingredient.search = product.name;
+  }
 }

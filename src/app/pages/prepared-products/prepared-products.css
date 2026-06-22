@@ -272,6 +272,47 @@
   cursor: not-allowed;
 }
 
+.search{
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  padding: 0 14px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
+
+.product-results{
+  margin-top: 6px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(17,25,40,0.95);
+}
+
+.product-result{
+  padding: 12px 14px;
+  cursor: pointer;
+  color: white;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.product-result:hover{
+  background: rgba(59,130,246,0.18);
+}
+
+.selected-product{
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(34,197,94,0.12);
+  color: #86efac;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 @media (max-width: 900px){
   .ingredient-row{
     grid-template-columns: 1fr;
