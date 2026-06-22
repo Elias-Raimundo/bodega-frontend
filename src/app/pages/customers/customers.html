@@ -168,6 +168,13 @@
         <div>
           <strong>{{ getMovementLabel(movement.type) }}</strong>
           <span>{{ movement.description }}</span>
+          <button
+            class="view-sale-btn"
+            *ngIf="movement.saleId"
+            (click)="openSaleDetail(movement.saleId); $event.stopPropagation()"
+          >
+            Ver venta
+          </button>
           <small>{{ movement.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
         </div>
 
@@ -181,5 +188,63 @@
 
     </div>
   </div>
+  <div
+    class="modal-overlay"
+    *ngIf="selectedSale"
+  >
+    <div class="modal sale-detail-modal">
 
+      <div class="modal-header">
+        <div>
+          <h3>Venta #{{ selectedSale.id }}</h3>
+          <span>
+            {{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
+
+        <button
+          class="close-btn"
+          (click)="closeSaleDetail()"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="sale-detail-section">
+        <h4>Productos</h4>
+
+        <div
+          class="sale-item-row"
+          *ngFor="let item of selectedSale.items"
+        >
+          <div>
+            <strong>{{ item.productName }}</strong>
+            <span>x{{ item.quantity }}</span>
+          </div>
+
+          <b>
+            ${{ item.price * item.quantity | number:'1.0-0' }}
+          </b>
+        </div>
+      </div>
+
+      <div class="sale-summary">
+        <div>
+          <span>Subtotal</span>
+          <strong>${{ selectedSale.subtotal | number:'1.0-0' }}</strong>
+        </div>
+
+        <div>
+          <span>Descuento</span>
+          <strong>${{ selectedSale.discount | number:'1.0-0' }}</strong>
+        </div>
+
+        <div class="total-row">
+          <span>Total</span>
+          <strong>${{ selectedSale.total | number:'1.0-0' }}</strong>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>

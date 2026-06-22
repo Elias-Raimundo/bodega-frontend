@@ -26,6 +26,8 @@ export class Customers implements OnInit {
   movementAmount: number | null = null;
   movementDescription = '';
 
+  selectedSale: any = null;
+
   constructor(
     private http: HttpClient,
     private cdRef: ChangeDetectorRef
@@ -107,6 +109,7 @@ export class Customers implements OnInit {
 
   closeCustomer() {
     this.selectedCustomer = null;
+    this.selectedSale = null;
     this.movements = [];
     this.movementAmount = null;
     this.movementDescription = '';
@@ -206,5 +209,27 @@ export class Customers implements OnInit {
     if (type === 'DEBT') return 'Deuda';
     if (type === 'PAYMENT') return 'Pago';
     return type;
+  }
+
+  openSaleDetail(saleId: number) {
+    this.http.get<any>(
+      `https://bodega-backend-9c4f.onrender.com/sales/${saleId}`,
+      {
+        headers: this.getHeaders()
+      }
+    ).subscribe({
+      next: (res) => {
+        this.selectedSale = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando venta:', err);
+        alert('No se pudo cargar el detalle de la venta');
+      }
+    });
+  }
+
+  closeSaleDetail() {
+    this.selectedSale = null;
   }
 }

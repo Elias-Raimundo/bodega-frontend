@@ -280,6 +280,76 @@
 .movement-row b.payment{
   color: #4ade80;
 }
+.view-sale-btn{
+  margin-top: 6px;
+  width: fit-content;
+  border: none;
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: rgba(59,130,246,0.18);
+  color: #93c5fd;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sale-detail-modal{
+  width: 560px;
+  z-index: 1001;
+}
+
+.sale-detail-section{
+  margin-top: 12px;
+}
+
+.sale-detail-section h4{
+  margin: 0 0 12px;
+}
+
+.sale-item-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sale-item-row div{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sale-item-row span{
+  color: rgba(255,255,255,0.55);
+}
+
+.sale-item-row b{
+  color: #4ade80;
+}
+
+.sale-summary{
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sale-summary div{
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255,255,255,0.75);
+}
+
+.sale-summary .total-row{
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 12px;
+  color: white;
+  font-size: 20px;
+}
+
+.sale-summary .total-row strong{
+  color: #4ade80;
+}
 
 @media (max-width: 700px){
   .header,
