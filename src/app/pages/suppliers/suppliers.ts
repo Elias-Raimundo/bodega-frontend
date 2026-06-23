@@ -105,6 +105,7 @@ export class Suppliers implements OnInit {
         this.showCreateModal = false;
 
         this.loadSuppliers();
+        
       },
       error: (err) => {
         console.error(err);
@@ -217,6 +218,7 @@ export class Suppliers implements OnInit {
     ).subscribe({
       next: () => {
         this.loadInvoices(this.selectedSupplier.id);
+        this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
@@ -250,12 +252,14 @@ export class Suppliers implements OnInit {
     this.editingSupplier = supplier;
     this.editSupplierName = supplier.name;
     this.editSupplierDescription = supplier.description || '';
+  
   }
 
   cancelEditSupplier() {
     this.editingSupplier = null;
     this.editSupplierName = '';
     this.editSupplierDescription = '';
+    this.cdRef.detectChanges();
   }
 
   updateSupplier() {
@@ -283,6 +287,7 @@ export class Suppliers implements OnInit {
 
           this.cancelEditSupplier();
           this.loadSuppliers();
+          this.cdRef.detectChanges();
         },
         error: (err) => {
         alert(err.error?.message || 'Error editando proveedor');
@@ -305,6 +310,7 @@ export class Suppliers implements OnInit {
     ).subscribe({
         next: () => {
         this.loadSuppliers();
+        this.cdRef.detectChanges();
         },
         error: (err) => {
         alert(err.error?.message || 'Error eliminando proveedor');
