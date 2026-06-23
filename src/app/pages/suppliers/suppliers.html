@@ -140,7 +140,7 @@
         <input
           type="number"
           [(ngModel)]="invoiceForm.paidAmount"
-          placeholder="Monto pagado"
+          placeholder="Pago inicial (opcional)"
         />
 
         <input
@@ -215,7 +215,7 @@
 
           <input
             type="number"
-            [(ngModel)]="paymentAmount"
+            [(ngModel)]="paymentAmount[invoice.id]"
             placeholder="Pago"
           />
 

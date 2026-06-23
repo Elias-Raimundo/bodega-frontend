@@ -32,7 +32,7 @@ export class Suppliers implements OnInit {
     description: ''
   };
 
-  paymentAmount: number | null = null;
+  paymentAmount: {[invoiceId: number]: number | null} = {};
 
   constructor(
     private http: HttpClient,
@@ -169,8 +169,8 @@ export class Suppliers implements OnInit {
   }
 
   registerPayment(invoice: any) {
-
-    if (!this.paymentAmount || this.paymentAmount <= 0) {
+    const amount = this.paymentAmount[invoice.id];
+    if (!amount || amount <= 0) {
       alert('Ingrese un importe');
       return;
     }
@@ -178,7 +178,7 @@ export class Suppliers implements OnInit {
     this.http.post<any>(
       `https://bodega-backend-9c4f.onrender.com/suppliers/invoices/${invoice.id}/payment`,
       {
-        paidAmount: this.paymentAmount
+        paidAmount: amount
       },
       {
         headers: this.getHeaders()
@@ -186,7 +186,7 @@ export class Suppliers implements OnInit {
     ).subscribe({
       next: () => {
 
-        this.paymentAmount = null;
+        this.paymentAmount[invoice.id] = null;
 
         this.loadInvoices(this.selectedSupplier.id);
       },
