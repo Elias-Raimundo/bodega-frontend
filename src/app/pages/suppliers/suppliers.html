@@ -1,0 +1,243 @@
+<div class="suppliers-page">
+
+  <div class="header">
+    <h1>🚚 Proveedores</h1>
+
+    <button
+      class="primary"
+      (click)="showCreateModal = true"
+    >
+      + Proveedor
+    </button>
+  </div>
+
+  <div class="card">
+    <input
+      class="search"
+      type="text"
+      [(ngModel)]="search"
+      placeholder="Buscar proveedor..."
+    />
+  </div>
+
+  <div class="card suppliers-list">
+
+    <div
+      class="empty"
+      *ngIf="filteredSuppliers.length === 0"
+    >
+      No hay proveedores registrados.
+    </div>
+
+    <div
+      class="supplier-row"
+      *ngFor="let supplier of filteredSuppliers"
+      (click)="openSupplier(supplier)"
+    >
+      <div>
+        <strong>{{ supplier.name }}</strong>
+        <span>{{ supplier.description || 'Sin descripción' }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL NUEVO PROVEEDOR -->
+
+  <div
+    class="modal-overlay"
+    *ngIf="showCreateModal"
+  >
+    <div class="modal">
+
+      <h3>Nuevo proveedor</h3>
+
+      <input
+        type="text"
+        [(ngModel)]="newSupplierName"
+        placeholder="Nombre"
+      />
+
+      <input
+        type="text"
+        [(ngModel)]="newSupplierDescription"
+        placeholder="Descripción"
+      />
+
+      <div class="modal-actions">
+
+        <button
+          class="primary"
+          (click)="createSupplier()"
+        >
+          Crear
+        </button>
+
+        <button
+          class="cancel"
+          (click)="showCreateModal = false"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL PROVEEDOR -->
+
+  <div
+    class="modal-overlay"
+    *ngIf="selectedSupplier"
+  >
+    <div class="modal large-modal">
+
+      <div class="modal-header">
+
+        <div>
+          <h3>{{ selectedSupplier.name }}</h3>
+          <span>{{ selectedSupplier.description }}</span>
+        </div>
+
+        <button
+          class="close-btn"
+          (click)="closeSupplier()"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="stats-card">
+        <span>Total pendiente</span>
+        <strong>
+          ${{ getTotalPending() | number:'1.0-0' }}
+        </strong>
+      </div>
+
+      <h3>Nueva factura</h3>
+
+      <div class="invoice-form">
+
+        <input
+          type="text"
+          [(ngModel)]="invoiceForm.invoiceNumber"
+          placeholder="Número factura"
+        />
+
+        <input
+          type="date"
+          [(ngModel)]="invoiceForm.invoiceDate"
+        />
+
+        <input
+          type="number"
+          [(ngModel)]="invoiceForm.totalAmount"
+          placeholder="Monto total"
+        />
+
+        <input
+          type="number"
+          [(ngModel)]="invoiceForm.paidAmount"
+          placeholder="Monto pagado"
+        />
+
+        <input
+          type="text"
+          [(ngModel)]="invoiceForm.description"
+          placeholder="Descripción"
+        />
+
+        <button
+          class="primary"
+          (click)="createInvoice()"
+        >
+          Guardar factura
+        </button>
+
+      </div>
+
+      <h3>Facturas</h3>
+
+      <div
+        class="empty"
+        *ngIf="invoices.length === 0"
+      >
+        No hay facturas cargadas.
+      </div>
+
+      <div
+        class="invoice-row"
+        *ngFor="let invoice of invoices"
+      >
+
+        <div class="invoice-info">
+
+          <strong>
+            {{ invoice.invoiceNumber || 'Sin número' }}
+          </strong>
+
+          <span>
+            {{ invoice.invoiceDate | date:'dd/MM/yyyy' }}
+          </span>
+
+          <small>
+            {{ invoice.description }}
+          </small>
+
+        </div>
+
+        <div class="invoice-values">
+
+          <div>
+            Total:
+            ${{ invoice.totalAmount | number:'1.0-0' }}
+          </div>
+
+          <div>
+            Pagado:
+            ${{ invoice.paidAmount | number:'1.0-0' }}
+          </div>
+
+          <div class="pending">
+            Pendiente:
+            ${{ invoice.pendingAmount | number:'1.0-0' }}
+          </div>
+
+          <div class="status">
+            {{ invoice.status }}
+          </div>
+
+        </div>
+
+        <div class="invoice-actions">
+
+          <input
+            type="number"
+            [(ngModel)]="paymentAmount"
+            placeholder="Pago"
+          />
+
+          <button
+            class="payment-btn"
+            (click)="registerPayment(invoice)"
+          >
+            Registrar pago
+          </button>
+
+          <button
+            class="delete-btn"
+            (click)="deleteInvoice(invoice.id)"
+          >
+            Eliminar
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
