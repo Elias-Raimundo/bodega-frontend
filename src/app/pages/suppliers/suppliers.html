@@ -38,6 +38,22 @@
         <strong>{{ supplier.name }}</strong>
         <span>{{ supplier.description || 'Sin descripción' }}</span>
       </div>
+
+      <div class="supplier-actions">
+        <button
+          class="secondary"
+          (click)="openEditSupplier(supplier, $event)"
+        >
+          Editar
+        </button>
+
+        <button
+          class="delete-btn"
+          (click)="deleteSupplier(supplier, $event)"
+        >
+          ✕ Eliminar
+        </button>
+      </div>
     </div>
 
   </div>
@@ -84,6 +100,48 @@
 
     </div>
   </div>
+
+  <!-- MODAL EDITAR PROVEEDOR -->
+    <div
+    class="modal-overlay"
+    *ngIf="editingSupplier"
+    >
+    <div class="modal">
+
+        <h3>Editar proveedor</h3>
+
+        <input
+        type="text"
+        [(ngModel)]="editSupplierName"
+        placeholder="Nombre"
+        />
+
+        <input
+        type="text"
+        [(ngModel)]="editSupplierDescription"
+        placeholder="Descripción"
+        />
+
+        <div class="modal-actions">
+
+        <button
+            class="primary"
+            (click)="updateSupplier()"
+        >
+            Guardar
+        </button>
+
+        <button
+            class="cancel"
+            (click)="cancelEditSupplier()"
+        >
+            Cancelar
+        </button>
+
+        </div>
+
+    </div>
+    </div>
 
   <!-- MODAL PROVEEDOR -->
 

@@ -24,11 +24,15 @@ export class Suppliers implements OnInit {
   newSupplierName = '';
   newSupplierDescription = '';
 
+  editingSupplier: any = null;
+  editSupplierName = '';
+  editSupplierDescription = '';
+
   invoiceForm = {
     invoiceNumber: '',
     invoiceDate: '',
     totalAmount: null as number | null,
-    paidAmount: 0,
+    paidAmount: null as number | null,
     description: ''
   };
 
@@ -226,7 +230,7 @@ export class Suppliers implements OnInit {
       invoiceNumber: '',
       invoiceDate: '',
       totalAmount: null,
-      paidAmount: 0,
+      paidAmount: null as number | null,
       description: ''
     };
   }
@@ -238,5 +242,69 @@ export class Suppliers implements OnInit {
         acc + Number(invoice.pendingAmount || 0),
       0
     );
+  }
+
+  openEditSupplier(supplier: any, event: Event) {
+    event.stopPropagation();
+
+    this.editingSupplier = supplier;
+    this.editSupplierName = supplier.name;
+    this.editSupplierDescription = supplier.description || '';
+  }
+
+  cancelEditSupplier() {
+    this.editingSupplier = null;
+    this.editSupplierName = '';
+    this.editSupplierDescription = '';
+  }
+
+  updateSupplier() {
+    if (!this.editingSupplier) return;
+
+    if (!this.editSupplierName.trim()) {
+        alert('El nombre es obligatorio');
+        return;
+    }
+
+    this.http.put<any>(
+        `https://bodega-backend-9c4f.onrender.com/suppliers/${this.editingSupplier.id}`,
+        {
+        name: this.editSupplierName,
+        description: this.editSupplierDescription
+        },
+        {
+        headers: this.getHeaders()
+        }
+    ).subscribe({
+        next: () => {
+        this.cancelEditSupplier();
+        this.loadSuppliers();
+        },
+        error: (err) => {
+        alert(err.error?.message || 'Error editando proveedor');
+        }
+    });
+  }
+
+  deleteSupplier(supplier: any, event: Event) {
+    event.stopPropagation();
+
+    if (!confirm(`¿Eliminar proveedor ${supplier.name}?`)) {
+        return;
+    }
+
+    this.http.delete(
+        `https://bodega-backend-9c4f.onrender.com/suppliers/${supplier.id}`,
+        {
+        headers: this.getHeaders()
+        }
+    ).subscribe({
+        next: () => {
+        this.loadSuppliers();
+        },
+        error: (err) => {
+        alert(err.error?.message || 'Error eliminando proveedor');
+        }
+    });
   }
 }

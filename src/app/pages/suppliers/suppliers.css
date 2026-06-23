@@ -276,6 +276,37 @@
   background: #ef4444;
 }
 
+.supplier-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.supplier-actions{
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn,
+.delete-btn{
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 12px;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.edit-btn{
+  background: #3b82f6;
+}
+
+.delete-btn{
+  background: #ef4444;
+}
+
 @media (max-width: 900px){
   .header,
   .modal-actions{
