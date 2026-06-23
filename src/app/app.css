@@ -23,7 +23,7 @@
 
 /* CONTENT */
 .content {
-  background: #f5f7fb;
+  background: #020617;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -31,6 +31,6 @@
 
 .page {
   flex: 1;
-  padding: 20px;
+  padding: 0;
   width: 100%;
 }

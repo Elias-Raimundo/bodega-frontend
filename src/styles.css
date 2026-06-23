@@ -1,9 +1,16 @@
 @import 'ngx-toastr/toastr';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+html,
 body {
-    background: #f5f7fb;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #020617;
     color: #111827;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
 }
 
 * {
