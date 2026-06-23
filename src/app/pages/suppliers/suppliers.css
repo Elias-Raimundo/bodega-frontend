@@ -10,6 +10,14 @@
   color: white;
 }
 
+.supplier-pending{
+  margin-left: auto;
+  margin-right: 18px;
+  color: #f87171;
+  font-size: 18px;
+  font-weight: 900;
+}
+
 .header{
   display: flex;
   justify-content: space-between;
@@ -64,6 +72,10 @@
 }
 
 .supplier-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   padding: 16px;
   margin-bottom: 12px;
   border-radius: 16px;
@@ -79,7 +91,7 @@
   border-color: rgba(59,130,246,0.35);
 }
 
-.supplier-row div{
+.supplier-info{
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -276,20 +288,16 @@
   background: #ef4444;
 }
 
-.supplier-row{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
 
 .supplier-actions{
   display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
 .edit-btn,
 .delete-btn{
+  min-width: 120px;
   height: 38px;
   border: none;
   border-radius: 10px;

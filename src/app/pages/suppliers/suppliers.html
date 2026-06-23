@@ -34,10 +34,14 @@
       *ngFor="let supplier of filteredSuppliers"
       (click)="openSupplier(supplier)"
     >
-      <div>
+      <div class="supplier-info">
         <strong>{{ supplier.name }}</strong>
         <span>{{ supplier.description || 'Sin descripción' }}</span>
       </div>
+      
+      <b class="supplier-pending">
+        Debe ${{ supplier.pendingTotal | number:'1.0-0' }}
+      </b>
 
       <div class="supplier-actions">
         <button
