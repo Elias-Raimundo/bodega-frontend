@@ -276,9 +276,13 @@ export class Suppliers implements OnInit {
         headers: this.getHeaders()
         }
     ).subscribe({
-        next: () => {
-        this.cancelEditSupplier();
-        this.loadSuppliers();
+        next: (updated) => {
+          if (this.selectedSupplier && this.selectedSupplier.id === updated.id) {
+            this.selectedSupplier = updated;
+          }
+
+          this.cancelEditSupplier();
+          this.loadSuppliers();
         },
         error: (err) => {
         alert(err.error?.message || 'Error editando proveedor');
