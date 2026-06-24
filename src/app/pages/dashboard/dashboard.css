@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :host {
@@ -80,7 +79,6 @@
   gap: 10px;
 }
 
-/* Quitamos el emoji y usamos un acento de línea igual que en ventas */
 .header h1::before {
   content: '';
   display: inline-block;
@@ -109,7 +107,6 @@
   transition: var(--transition);
 }
 
-/* Aurora individual por card */
 .stat-card::before {
   content: '';
   position: absolute;
@@ -117,11 +114,7 @@
   right: -50px;
   width: 150px;
   height: 150px;
-  background: radial-gradient(
-    circle,
-    rgba(99, 102, 241, 0.08) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -130,21 +123,16 @@
   transform: translateY(-4px);
   border-color: var(--border-mid);
   box-shadow: 0 0 0 1px var(--border-mid),
-              0 24px 64px rgba(0, 0, 0, 0.6),
-              0 4px 20px rgba(99, 102, 241, 0.1);
+              0 24px 64px rgba(0,0,0,0.6),
+              0 4px 20px rgba(99,102,241,0.1);
 }
 
-/* Card con alerta (bajo stock) */
 .stat-card.low {
   border-color: rgba(244, 63, 94, 0.3);
 }
 
 .stat-card.low::before {
-  background: radial-gradient(
-    circle,
-    rgba(244, 63, 94, 0.08) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(244,63,94,0.08) 0%, transparent 70%);
 }
 
 .stat-card h4 {
@@ -169,12 +157,19 @@
   color: var(--rose);
 }
 
-/* ── Grid inferior ── */
+/* ── Grid principal ── */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
   align-items: start;
+}
+
+/* ── Columna izquierda (pagos + stock) ── */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* ── Secciones (paneles) ── */
@@ -195,17 +190,13 @@
   right: -70px;
   width: 220px;
   height: 220px;
-  background: radial-gradient(
-    circle,
-    rgba(99, 102, 241, 0.06) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
 
 .section h3 {
-  margin-bottom: 18px;
+  margin: 0 0 18px;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -251,7 +242,6 @@
 .payment-card:hover {
   background: var(--bg-hover);
   border-color: var(--border-mid);
-  border-left-color: inherit;
   transform: translateY(-2px);
 }
 
@@ -343,7 +333,7 @@
 .stock-alerts {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .alert-item {
@@ -391,11 +381,22 @@
   white-space: nowrap;
 }
 
+.empty-alerts {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+
   .payment-stats {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -405,12 +406,15 @@
   .stats {
     grid-template-columns: 1fr 1fr;
   }
+
   .payment-stats {
     grid-template-columns: 1fr;
   }
+
   .header h1 {
     font-size: 22px;
   }
+
   .dashboard {
     padding: 16px;
   }

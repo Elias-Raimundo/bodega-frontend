@@ -31,45 +31,63 @@
 
   <div class="dashboard-grid">
 
-  <!-- PAYMENT -->
-    <div
-      class="section"
-      *ngIf="paymentStats"
-    >
+    <!-- COLUMNA IZQUIERDA: Pagos + Stock -->
+    <div class="left-col">
 
-      <h3>Métodos de pago</h3>
+      <!-- PAYMENT -->
+      <div class="section" *ngIf="paymentStats">
+        <h3>Métodos de pago</h3>
+        <div class="payment-stats">
 
-      <div class="payment-stats">
+          <div class="payment-card">
+            <span>Efectivo</span>
+            <strong>${{ paymentStats.cash | number:'1.0-0' }}</strong>
+          </div>
 
-        <div class="payment-card">
-          <span>Efectivo</span>
-          <strong>${{ paymentStats.cash | number:'1.0-0' }}</strong>
+          <div class="payment-card">
+            <span>Transferencia</span>
+            <strong>${{ paymentStats.transfer | number:'1.0-0' }}</strong>
+          </div>
+
+          <div class="payment-card">
+            <span>Débito</span>
+            <strong>${{ paymentStats.debit | number:'1.0-0' }}</strong>
+          </div>
+
+          <div class="payment-card">
+            <span>Crédito</span>
+            <strong>${{ paymentStats.credit | number:'1.0-0' }}</strong>
+          </div>
+
         </div>
+      </div>
 
-        <div class="payment-card">
-          <span>Transferencia</span>
-          <strong>${{ paymentStats.transfer | number:'1.0-0' }}</strong>
+      <!-- STOCK ALERTS -->
+      <div class="section">
+        <h3>⚠️ Productos con bajo stock</h3>
+        <div class="stock-alerts">
+          <div
+            class="alert-item"
+            *ngFor="let p of lowStockProducts()"
+          >
+            <div class="alert-info">
+              <span class="product-name">{{ p.name }}</span>
+              <span class="units">{{ p.stock }} unidades</span>
+            </div>
+            <strong class="danger-text">Stock bajo</strong>
+          </div>
+
+          <div class="empty-alerts" *ngIf="!lowStockProducts().length">
+            No hay productos con bajo stock.
+          </div>
         </div>
-
-        <div class="payment-card">
-          <span>Débito</span>
-          <strong>${{ paymentStats.debit | number:'1.0-0' }}</strong>
-        </div>
-
-        <div class="payment-card">
-          <span>Crédito</span>
-          <strong>${{ paymentStats.credit | number:'1.0-0' }}</strong>
-        </div>
-
       </div>
 
     </div>
 
-    <!-- SALES -->
+    <!-- COLUMNA DERECHA: Últimas ventas -->
     <div class="section">
-
       <h3>Últimas ventas</h3>
-
       <div class="recent-sales">
 
         <div
@@ -78,83 +96,29 @@
         >
 
           <div class="sale-top">
-
             <div class="sale-left">
-
-              <span class="date">
-                {{ s.createdAt | date:'dd/MM HH:mm' }}
-              </span>
-
-              <div class="sale-id">
-                Venta #{{ s.id }}
-              </div>
-
+              <span class="date">{{ s.createdAt | date:'dd/MM HH:mm' }}</span>
+              <div class="sale-id">Venta #{{ s.id }}</div>
             </div>
-
-            <span class="amount">
-              ${{ s.total }}
-            </span>
-
+            <span class="amount">${{ s.total }}</span>
           </div>
 
-          <!-- PRODUCTOS -->
           <div class="sale-products">
-
-            <span
-              *ngFor="
-                let item of s.items;
-                let last = last
-              "
-            >
-
-              {{ item.productName }}
-              x{{ item.quantity }}
-
-              <span *ngIf="!last">
-                •
-              </span>
-
+            <span *ngFor="let item of s.items; let last = last">
+              {{ item.productName }} x{{ item.quantity }}
+              <span *ngIf="!last"> • </span>
             </span>
-
           </div>
 
-          <!-- PAGOS -->
           <div class="sale-payments">
-
-            <span
-              *ngFor="
-                let payment of s.payments;
-                let last = last
-              "
-            >
-
+            <span *ngFor="let payment of s.payments; let last = last">
               {{ getPaymentMethodLabel(payment.method) }}
-
-              <span *ngIf="!last">
-                +
-              </span>
-
+              <span *ngIf="!last"> + </span>
             </span>
-
           </div>
 
         </div>
 
-      </div>
-
-    </div>
-
-    <div class="section stock-alerts">
-      <h3> ⚠️ Prodcutos con bajo stock</h3>
-      <div class="alert-item" *ngFor="let p of lowStockProducts()"
-      >
-        <div class="alert-info">
-          <span class="product-name">{{ p.name }}</span>
-          <span class="units">{{ p.stock }} unidades</span>
-        </div>
-        <strong class="danger-text">
-          Stock bajo
-        </strong>
       </div>
     </div>
 
