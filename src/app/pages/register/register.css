@@ -1,53 +1,180 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+/* =============================================
+   REGISTER COMPONENT — DISEÑO ELEGANTE OSCURO
+   Elias Raimundo — Sistema de Ventas
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:host {
+  --bg-base:        #080d18;
+  --bg-panel:       #0c1220;
+  --bg-surface:     #111827;
+  --border-subtle:  rgba(99, 102, 241, 0.12);
+  --border-mid:     rgba(99, 102, 241, 0.28);
+
+  --indigo:         #6366f1;
+  --indigo-dark:    #4f46e5;
+  --violet:         #8b5cf6;
+  --rose:           #f43f5e;
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #475569;
+
+  --radius-md:  14px;
+  --radius-xl:  26px;
+  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* ── Fondo ── */
 .container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background:
-    radial-gradient(
-      circle at top left,
-      #3b82f6,
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at bottom right,
-      #1d4ed8,
-      transparent 35%
-    ),
-    linear-gradient(
-      135deg,
-      #0f172a,
-      #1e293b
-    );
+  background: var(--bg-base);
   overflow: hidden;
+  position: relative;
+  padding: 30px 16px;
 }
 
+.container::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.10) 0%,
+    transparent 65%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.container::after {
+  content: '';
+  position: absolute;
+  bottom: -200px;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.08) 0%,
+    transparent 65%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Card ── */
 .card {
-  width: 380px;
-  padding: 48px;
-  border-radius: 28px;
-  background:
-    rgba(255,255,255,0.08);
-
-  backdrop-filter: blur(18px);
-  border:
-    1px solid rgba(255,255,255,0.15);
-
-  box-shadow:
-    0 10px 40px rgba(0,0,0,0.35);
-
+  width: 420px;
+  max-width: 100%;
+  padding: 44px 40px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-mid);
+  box-shadow: 0 0 0 1px var(--border-subtle),
+              0 30px 80px rgba(0, 0, 0, 0.6),
+              0 4px 20px rgba(99, 102, 241, 0.08);
   text-align: center;
-  animation:
-    fadeIn 0.5s ease;
-
-  transition: 0.3s;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  animation: fadeIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.09) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Título ── */
+h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--indigo), var(--violet));
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+
+/* ── Subtítulo ── */
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 26px;
+}
+
+/* ── Form ── */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+/* ── Inputs ── */
+input {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px;
+  margin: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: var(--transition);
+  box-sizing: border-box;
+  -webkit-appearance: none;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* ── Password field ── */
 .password-field {
   position: relative;
   width: 100%;
@@ -57,150 +184,107 @@ body {
   padding-right: 50px;
 }
 
+/* ── Botón ojo ── */
 .eye-btn {
   position: absolute;
   top: 50%;
-  right: 12px;
-
+  right: 10px;
   transform: translateY(-50%);
-
-  width: 32px !important;
-  height: 32px !important;
-
+  width: 30px !important;
+  height: 30px !important;
   padding: 0 !important;
   margin: 0 !important;
-
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
+  color: var(--text-muted);
+  transition: var(--transition);
 }
 
 .eye-btn:hover {
-  transform: translateY(-50%);
+  transform: translateY(-50%) !important;
   background: transparent !important;
   box-shadow: none !important;
+  color: var(--indigo);
 }
 
+/* ── Error ── */
 .error-text {
-  color: #f87171;
-  font-size: 13px;
-  margin-top: -6px;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.card:hover {
-  transform:
-    translateY(-2px);
-}
-
-h2 {
-  margin-bottom: 8px;
-  font-size: 48px;
-  color: white;
-}
-
-.subtitle {
-  color: rgba(255,255,255,0.75);
-  margin-bottom: 24px;
-  font-size: 16px;
-}
-
-input {
-  width: 100%;
-  padding: 14px 16px;
-  margin: 12px 0;
-  border-radius: 14px;
-  border:
-    1px solid rgba(255,255,255,0.1);
-  background:
-    rgba(255,255,255,0.08);
-  color: white;
-  font-size: 15px;
-  outline: none;
-  transition: 0.25s;
-  box-sizing: border-box;
-}
-
-input::placeholder {
-  color: rgba(255,255,255,0.55);
-}
-
-input:focus {
-  border-color: #60a5fa;
-  box-shadow:
-    0 0 0 4px rgba(96,165,250,0.15);
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  border: none;
-  border-radius: 14px;
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
-  color: white;
-  font-size: 15px;
+  color: var(--rose);
+  font-size: 12px;
   font-weight: 600;
+  margin: -2px 0 0;
+  padding: 8px 12px;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* ── Botón submit ── */
+button[type="submit"] {
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+  color: white;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: 0.25s;
-  box-shadow:
-    0 8px 20px rgba(37,99,235,0.35);
+  transition: var(--transition);
+  box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+  letter-spacing: 0.01em;
 }
 
-button:hover {
-  transform:
-    translateY(-2px);
-  box-shadow:
-    0 12px 30px rgba(37,99,235,0.45);
+button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.5);
 }
 
-button:disabled {
-  opacity: 0.7;
+button[type="submit"]:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
+/* ── Links ── */
 .links {
-  margin-top: 18px;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  text-align: center;
 }
 
 .links a {
-  color: #93c5fd;
+  color: var(--text-muted);
   text-decoration: none;
-  font-size: 14px;
-  transition: 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition);
 }
 
 .links a:hover {
-  color: white;
+  color: var(--indigo);
 }
 
+/* ── Animación ── */
 @keyframes fadeIn {
-
   from {
     opacity: 0;
-    transform:
-      translateY(15px);
+    transform: translateY(20px) scale(0.98);
   }
-
   to {
     opacity: 1;
-    transform:
-      translateY(0);
+    transform: translateY(0) scale(1);
   }
 }

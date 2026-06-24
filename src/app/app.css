@@ -1,36 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 .app {
   display: flex;
   height: 100vh;
-  font-family: Arial;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #080d18;
+  overflow: hidden;
 }
 
-/* MAIN */
+/* ── MAIN ── */
 .main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
-/* NAVBAR (si lo usás) */
+/* ── NAVBAR ── */
 .navbar {
   height: 60px;
-  background: #ffffff;
+  background: #0c1220;
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+  flex-shrink: 0;
 }
 
-/* CONTENT */
+/* ── CONTENT ── */
 .content {
-  background: #020617;
+  background: #080d18;
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .page {
   flex: 1;
   padding: 0;
   width: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 transparent;
+}
+
+.page::-webkit-scrollbar { width: 5px; }
+.page::-webkit-scrollbar-track { background: transparent; }
+.page::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 99px;
 }

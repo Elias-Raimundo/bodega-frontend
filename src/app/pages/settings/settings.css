@@ -1,70 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Variables ── */
+:host {
+  --bg-base:        #080d18;
+  --bg-panel:       #0c1220;
+  --bg-surface:     #111827;
+  --bg-hover:       #162033;
+  --border-subtle:  rgba(99, 102, 241, 0.12);
+  --border-mid:     rgba(99, 102, 241, 0.25);
+
+  --indigo:         #6366f1;
+  --indigo-dark:    #4f46e5;
+  --violet:         #8b5cf6;
+  --emerald:        #10b981;
+  --emerald-dark:   #059669;
+  --rose:           #f43f5e;
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #475569;
+
+  --radius-sm:  10px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+  --radius-xl:  26px;
+
+  --shadow-panel: 0 0 0 1px var(--border-subtle),
+                  0 20px 60px rgba(0, 0, 0, 0.6),
+                  0 4px 16px rgba(99, 102, 241, 0.06);
+
+  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--indigo) transparent;
+}
+*::-webkit-scrollbar { width: 5px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--indigo);
+  border-radius: 99px;
+}
+
+/* ── Contenedor ── */
 .settings-container {
   width: 100%;
   max-width: 950px;
+  padding: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* ── Card ── */
 .card {
-  background:
-    linear-gradient(
-      145deg,
-      rgba(30,41,59,0.95),
-      rgba(15,23,42,0.98)
-    );
-
-  border:
-    1px solid rgba(255,255,255,0.06);
-
-  backdrop-filter: blur(14px);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
   padding: 40px;
-  border-radius: 28px;
-  color: white;
-  box-shadow:
-    0 10px 40px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-panel);
+  position: relative;
+  overflow: hidden;
+  color: var(--text-primary);
 }
 
+.card::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ── Layout ── */
 .company-header {
   display: flex;
-  gap: 40px;
+  gap: 44px;
   align-items: center;
 }
 
+/* ── Logo section ── */
 .logo-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
 }
 
 .preview {
   width: 170px;
   height: 170px;
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
   object-fit: cover;
-  border:
-    2px solid rgba(255,255,255,0.08);
-
-  box-shadow:
-    0 8px 24px rgba(0,0,0,0.35);
+  border: 1px solid var(--border-mid);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 0 1px var(--border-subtle);
 }
 
 .empty-logo {
   width: 170px;
   height: 170px;
-  border-radius: 28px;
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
-
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--indigo), var(--violet));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 72px;
-  font-weight: bold;
+  font-weight: 900;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
+  border: 1px solid var(--border-mid);
 }
 
+/* ── Info section ── */
 .info-section {
   flex: 1;
 }
@@ -72,81 +128,127 @@
 .info-section h2 {
   margin-top: 0;
   margin-bottom: 30px;
-  font-size: 38px;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
+.info-section h2::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 34px;
+  background: linear-gradient(180deg, var(--indigo), var(--violet));
+  border-radius: 99px;
+}
+
+/* ── Form ── */
 .form-group {
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
-  margin-bottom: 10px;
-  color: #cbd5e1;
-  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 input {
   width: 100%;
-  height: 54px;
-  border: none;
+  height: 48px;
+  border-radius: var(--radius-md);
+  padding: 0 16px;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   outline: none;
-  border-radius: 16px;
-  padding: 0 18px;
-  font-size: 16px;
-  color: white;
-  background:
-    rgba(255,255,255,0.06);
-
-  border:
-    1px solid rgba(255,255,255,0.05);
-
   box-sizing: border-box;
+  transition: var(--transition);
+}
+
+input::placeholder {
+  color: var(--text-muted);
 }
 
 input:focus {
-  border:
-    1px solid rgba(59,130,246,0.6);
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+/* ── Botones ── */
 .primary {
   width: 100%;
-  height: 54px;
+  height: 48px;
   border: none;
-  border-radius: 16px;
-  background:
-    linear-gradient(
-      135deg,
-      #3b82f6,
-      #2563eb
-    );
-
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
   color: white;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow:
-    0 8px 22px rgba(37,99,235,0.35);
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
 }
 
 .primary:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
 }
 
 .upload-btn {
-  background:
-    rgba(255,255,255,0.08);
-
-  padding:
-    12px 18px;
-
-  border-radius: 12px;
+  background: transparent;
+  border: 1px dashed var(--border-mid);
+  color: var(--indigo);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: 0.2s;
-  font-size: 14px;
+  transition: var(--transition);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .upload-btn:hover {
-  background:
-    rgba(255,255,255,0.14);
+  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--indigo);
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .company-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+  }
+
+  .logo-section {
+    align-items: stretch;
+  }
+
+  .preview,
+  .empty-logo {
+    width: 100%;
+    height: 180px;
+    border-radius: var(--radius-lg);
+    font-size: 56px;
+  }
+
+  .card {
+    padding: 24px;
+  }
 }
