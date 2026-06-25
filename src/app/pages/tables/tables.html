@@ -277,6 +277,8 @@
                   Crédito
                 </option>
 
+                <option value="CURRENT_ACCOUNT">Cuenta Corriente</option>
+
               </select>
 
               <input
@@ -311,6 +313,16 @@
             *ngIf="!paymentsMatch()"
           >
             El total pagado no coincide
+          </div>
+
+          <div *ngIf="hasCurrentAccount()" class="current-account-box">
+            <label>Cliente</label>
+            <select [(ngModel)]="selectedCustomerId">
+              <option [ngValue]="null">Seleccionar cliente...</option>
+              <option *ngFor="let c of customers" [ngValue]="c.id">
+                {{ c.name }}
+              </option>
+            </select>
           </div>
 
           <button

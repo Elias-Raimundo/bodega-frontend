@@ -2,13 +2,7 @@
 
   <div class="header">
     <h1>👥 Cuenta Corriente</h1>
-
-    <button
-      class="primary"
-      (click)="showCreateModal = true"
-    >
-      + Cliente
-    </button>
+    <button class="primary" (click)="showCreateModal = true">+ Cliente</button>
   </div>
 
   <div class="stats-card">
@@ -27,10 +21,7 @@
 
   <div class="card customers-list">
 
-    <div
-      class="empty"
-      *ngIf="filteredCustomers.length === 0"
-    >
+    <div class="empty" *ngIf="filteredCustomers.length === 0">
       No hay clientes registrados.
     </div>
 
@@ -39,23 +30,35 @@
       *ngFor="let customer of filteredCustomers"
       (click)="openCustomer(customer)"
     >
-      <div>
+      <div class="customer-info">
         <strong>{{ customer.name }}</strong>
-        <span>{{ customer.notes || 'Sin notas' }}</span>
       </div>
 
-      <b [class.debt]="customer.balance > 0">
-        ${{ customer.balance | number:'1.0-0' }}
-      </b>
+      <div class="customer-actions">
+        <b [class.debt]="customer.balance > 0">
+          ${{ customer.balance | number:'1.0-0' }}
+        </b>
+
+        <button
+          class="edit-btn"
+          (click)="openEditCustomer(customer, $event)"
+        >
+          Editar
+        </button>
+
+        <button
+          class="delete-btn"
+          (click)="deleteCustomer(customer, $event)"
+        >
+          ✕ Eliminar
+        </button>
+      </div>
     </div>
 
   </div>
 
   <!-- MODAL CREAR -->
-  <div
-    class="modal-overlay"
-    *ngIf="showCreateModal"
-  >
+  <div class="modal-overlay" *ngIf="showCreateModal">
     <div class="modal">
 
       <h3>Nuevo cliente</h3>
@@ -66,36 +69,36 @@
         placeholder="Nombre"
       />
 
+      <div class="modal-actions">
+        <button class="primary" (click)="createCustomer()">Crear</button>
+        <button class="cancel" (click)="showCreateModal = false">Cancelar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR -->
+  <div class="modal-overlay" *ngIf="showEditModal">
+    <div class="modal">
+
+      <h3>Editar cliente</h3>
+
       <input
         type="text"
-        [(ngModel)]="newCustomerNotes"
-        placeholder="Notas opcionales"
+        [(ngModel)]="editCustomerName"
+        placeholder="Nombre"
       />
 
       <div class="modal-actions">
-        <button
-          class="primary"
-          (click)="createCustomer()"
-        >
-          Crear
-        </button>
-
-        <button
-          class="cancel"
-          (click)="showCreateModal = false"
-        >
-          Cancelar
-        </button>
+        <button class="primary" (click)="updateCustomer()">Guardar</button>
+        <button class="cancel" (click)="showEditModal = false; selectedCustomer = null">Cancelar</button>
       </div>
 
     </div>
   </div>
 
   <!-- MODAL CLIENTE -->
-  <div
-    class="modal-overlay"
-    *ngIf="selectedCustomer"
-  >
+  <div class="modal-overlay" *ngIf="selectedCustomer && !showEditModal">
     <div class="modal large-modal">
 
       <div class="modal-header">
@@ -103,19 +106,10 @@
           <h3>{{ selectedCustomer.name }}</h3>
           <span>Saldo actual</span>
         </div>
-
-        <button
-          class="close-btn"
-          (click)="closeCustomer()"
-        >
-          ✕
-        </button>
+        <button class="close-btn" (click)="closeCustomer()">✕</button>
       </div>
 
-      <div
-        class="balance-big"
-        [class.debt]="selectedCustomer.balance > 0"
-      >
+      <div class="balance-big" [class.debt]="selectedCustomer.balance > 0">
         ${{ selectedCustomer.balance | number:'1.0-0' }}
       </div>
 
@@ -135,36 +129,19 @@
         />
 
         <div class="movement-actions">
-          <button
-            class="debt-btn"
-            (click)="addDebt()"
-          >
-            + Agregar deuda
-          </button>
-
-          <button
-            class="payment-btn"
-            (click)="addPayment()"
-          >
-            Registrar pago
-          </button>
+          <button class="debt-btn" (click)="addDebt()">+ Agregar deuda</button>
+          <button class="payment-btn" (click)="addPayment()">Registrar pago</button>
         </div>
 
       </div>
 
       <h3>Historial</h3>
 
-      <div
-        class="empty"
-        *ngIf="movements.length === 0"
-      >
+      <div class="empty" *ngIf="movements.length === 0">
         No hay movimientos.
       </div>
 
-      <div
-        class="movement-row"
-        *ngFor="let movement of movements"
-      >
+      <div class="movement-row" *ngFor="let movement of movements">
         <div>
           <strong>{{ getMovementLabel(movement.type) }}</strong>
           <span>{{ movement.description }}</span>
@@ -188,43 +165,28 @@
 
     </div>
   </div>
-  <div
-    class="modal-overlay"
-    *ngIf="selectedSale"
-  >
+
+  <!-- MODAL VENTA -->
+  <div class="modal-overlay" *ngIf="selectedSale">
     <div class="modal sale-detail-modal">
 
       <div class="modal-header">
         <div>
           <h3>Venta #{{ selectedSale.id }}</h3>
-          <span>
-            {{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}
-          </span>
+          <span>{{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
-
-        <button
-          class="close-btn"
-          (click)="closeSaleDetail()"
-        >
-          ✕
-        </button>
+        <button class="close-btn" (click)="closeSaleDetail()">✕</button>
       </div>
 
       <div class="sale-detail-section">
         <h4>Productos</h4>
 
-        <div
-          class="sale-item-row"
-          *ngFor="let item of selectedSale.items"
-        >
+        <div class="sale-item-row" *ngFor="let item of selectedSale.items">
           <div>
             <strong>{{ item.productName }}</strong>
             <span>x{{ item.quantity }}</span>
           </div>
-
-          <b>
-            ${{ item.price * item.quantity | number:'1.0-0' }}
-          </b>
+          <b>${{ item.price * item.quantity | number:'1.0-0' }}</b>
         </div>
       </div>
 
@@ -233,12 +195,10 @@
           <span>Subtotal</span>
           <strong>${{ selectedSale.subtotal | number:'1.0-0' }}</strong>
         </div>
-
         <div>
           <span>Descuento</span>
           <strong>${{ selectedSale.discount | number:'1.0-0' }}</strong>
         </div>
-
         <div class="total-row">
           <span>Total</span>
           <strong>${{ selectedSale.total | number:'1.0-0' }}</strong>
@@ -247,4 +207,5 @@
 
     </div>
   </div>
+
 </div>

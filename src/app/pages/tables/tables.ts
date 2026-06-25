@@ -16,7 +16,7 @@ export class Tables implements OnInit {
   products: any[] = [];
   preparedProducts: any[] = [];
 
-  tableCount = 10;
+  tableCount = 5;
 
   selectedTable: any = null;
   selectedOrder: any = null;
@@ -24,6 +24,8 @@ export class Tables implements OnInit {
   search = '';
 
   discount = 0;
+  customers: any[] = [];
+  selectedCustomerId: number | null = null;
 
   payments = [
     {
@@ -41,6 +43,7 @@ export class Tables implements OnInit {
     this.loadTables();
     this.loadProducts();
     this.loadPreparedProducts();
+    this.loadCustomers();
   }
 
   getToken() {
@@ -399,7 +402,8 @@ export class Tables implements OnInit {
       `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/close`,
       {
         payments: this.payments,
-        discount: Number(this.discount) || 0
+        discount: Number(this.discount) || 0,
+        customerId: this.selectedCustomerId || null 
       },
       {
         headers: {
@@ -412,6 +416,7 @@ export class Tables implements OnInit {
         this.selectedOrder = null;
         this.search = '';
         this.discount = 0;
+        this.selectedCustomerId = null;
 
         this.payments = [
           {
@@ -432,11 +437,29 @@ export class Tables implements OnInit {
     });
   }
 
+  loadCustomers() {
+    const token = this.getToken();
+    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/customers', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (res) => {
+        this.customers = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => console.error('Error cargando clientes:', err)
+    });
+  }
+
+  hasCurrentAccount() {
+    return this.payments.some(p => p.method === 'CURRENT_ACCOUNT');
+  }
+
   closeModal() {
     this.selectedTable = null;
     this.selectedOrder = null;
     this.search = '';
     this.discount = 0;
+    this.selectedCustomerId = null;
 
     this.payments = [
       {

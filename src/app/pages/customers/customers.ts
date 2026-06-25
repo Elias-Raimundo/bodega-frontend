@@ -18,10 +18,12 @@ export class Customers implements OnInit {
   search = '';
 
   showCreateModal = false;
+  showEditModal = false;
   selectedCustomer: any = null;
 
   newCustomerName = '';
-  newCustomerNotes = '';
+
+  editCustomerName = '';
 
   movementAmount: number | null = null;
   movementDescription = '';
@@ -50,24 +52,19 @@ export class Customers implements OnInit {
   loadCustomers() {
     this.http.get<any[]>(
       'https://bodega-backend-9c4f.onrender.com/customers',
-      {
-        headers: this.getHeaders()
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.customers = res;
         this.cdRef.detectChanges();
       },
-      error: (err) => {
-        console.error('Error cargando clientes:', err);
-      }
+      error: (err) => console.error('Error cargando clientes:', err)
     });
   }
 
   get filteredCustomers() {
     return this.customers.filter(c =>
-      c.name?.toLowerCase()
-        .includes(this.search.toLowerCase())
+      c.name?.toLowerCase().includes(this.search.toLowerCase())
     );
   }
 
@@ -79,24 +76,60 @@ export class Customers implements OnInit {
 
     this.http.post<any>(
       'https://bodega-backend-9c4f.onrender.com/customers',
-      {
-        name: this.newCustomerName,
-        notes: this.newCustomerNotes
-      },
-      {
-        headers: this.getHeaders()
-      }
+      { name: this.newCustomerName },
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
         this.newCustomerName = '';
-        this.newCustomerNotes = '';
         this.showCreateModal = false;
         this.loadCustomers();
         this.cdRef.detectChanges();
       },
-      error: (err) => {
-        console.error('Error creando cliente:', err);
-      }
+      error: (err) => console.error('Error creando cliente:', err)
+    });
+  }
+
+  openEditCustomer(customer: any, event: Event) {
+    event.stopPropagation();
+    this.editCustomerName = customer.name;
+    this.selectedCustomer = customer;
+    this.showEditModal = true;
+  }
+
+  updateCustomer() {
+    if (!this.editCustomerName.trim()) {
+      alert('El nombre es obligatorio');
+      return;
+    }
+
+    this.http.put<any>(
+      `https://bodega-backend-9c4f.onrender.com/customers/${this.selectedCustomer.id}`,
+      { name: this.editCustomerName },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.showEditModal = false;
+        this.selectedCustomer = null;
+        this.loadCustomers();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => console.error('Error actualizando cliente:', err)
+    });
+  }
+
+  deleteCustomer(customer: any, event: Event) {
+    event.stopPropagation();
+    if (!confirm(`¿Eliminar a ${customer.name}? Se borrarán todos sus movimientos.`)) return;
+
+    this.http.delete(
+      `https://bodega-backend-9c4f.onrender.com/customers/${customer.id}`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.loadCustomers();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => console.error('Error eliminando cliente:', err)
     });
   }
 
@@ -118,23 +151,18 @@ export class Customers implements OnInit {
   loadMovements(customerId: number) {
     this.http.get<any[]>(
       `https://bodega-backend-9c4f.onrender.com/customers/${customerId}/movements`,
-      {
-        headers: this.getHeaders()
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.movements = res;
         this.cdRef.detectChanges();
       },
-      error: (err) => {
-        console.error('Error cargando movimientos:', err);
-      }
+      error: (err) => console.error('Error cargando movimientos:', err)
     });
   }
 
   addDebt() {
     if (!this.selectedCustomer) return;
-
     if (!this.movementAmount || this.movementAmount <= 0) {
       alert('El importe debe ser mayor a cero');
       return;
@@ -142,13 +170,8 @@ export class Customers implements OnInit {
 
     this.http.post<any>(
       `https://bodega-backend-9c4f.onrender.com/customers/${this.selectedCustomer.id}/debt`,
-      {
-        amount: this.movementAmount,
-        description: this.movementDescription
-      },
-      {
-        headers: this.getHeaders()
-      }
+      { amount: this.movementAmount, description: this.movementDescription },
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedCustomer = res;
@@ -167,7 +190,6 @@ export class Customers implements OnInit {
 
   addPayment() {
     if (!this.selectedCustomer) return;
-
     if (!this.movementAmount || this.movementAmount <= 0) {
       alert('El importe debe ser mayor a cero');
       return;
@@ -175,13 +197,8 @@ export class Customers implements OnInit {
 
     this.http.post<any>(
       `https://bodega-backend-9c4f.onrender.com/customers/${this.selectedCustomer.id}/payment`,
-      {
-        amount: this.movementAmount,
-        description: this.movementDescription
-      },
-      {
-        headers: this.getHeaders()
-      }
+      { amount: this.movementAmount, description: this.movementDescription },
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedCustomer = res;
@@ -214,9 +231,7 @@ export class Customers implements OnInit {
   openSaleDetail(saleId: number) {
     this.http.get<any>(
       `https://bodega-backend-9c4f.onrender.com/sales/${saleId}`,
-      {
-        headers: this.getHeaders()
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedSale = res;
