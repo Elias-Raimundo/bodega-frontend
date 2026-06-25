@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
 import { CompanyService } from './services/company.service';
 
 @Component({
@@ -12,9 +13,28 @@ import { CompanyService } from './services/company.service';
 export class App {
   constructor(
     private router: Router,
-    private companyService: CompanyService
+    private companyService: CompanyService,
+    @Inject(DOCUMENT) private document: Document
   ) {
     this.companyService.rehydrate();
+
+    // Cada vez que cambie la company, actualizar el favicon
+    this.companyService.company$.subscribe(company => {
+      if (company?.logo) {
+        this.setFavicon(company.logo);
+      }
+    });
+  }
+
+  setFavicon(logoUrl: string) {
+    let link = this.document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = this.document.createElement('link');
+      link.rel = 'icon';
+      this.document.head.appendChild(link);
+    }
+    link.type = 'image/png';
+    link.href = logoUrl;
   }
 
   logout() {
