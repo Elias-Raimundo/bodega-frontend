@@ -106,6 +106,8 @@ export class Dashboard implements OnInit {
         return 'Débito';
       case 'CREDIT':
         return 'Crédito';
+      case 'CURRENT_ACCOUNT': 
+        return 'Cuenta Corriente';
       default:
         return method;
     }

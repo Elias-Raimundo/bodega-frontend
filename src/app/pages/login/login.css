@@ -265,6 +265,18 @@ button[type="submit"]:disabled {
   color: var(--indigo);
 }
 
+.copyright {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 24px;
+}
+
+.copyright strong {
+  color: var(--indigo);
+  font-weight: 700;
+}
 /* ── Animación ── */
 @keyframes fadeIn {
   from {
