@@ -653,6 +653,50 @@
   letter-spacing: -0.5px;
 }
 
+.customer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber);
+  background: rgba(245, 158, 11, 0.1);
+  transition: var(--transition);
+}
+
+.edit-btn:hover {
+  background: var(--amber);
+  color: #000;
+}
+
+.delete-btn {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rose);
+  background: rgba(244, 63, 94, 0.1);
+  transition: var(--transition);
+}
+
+.delete-btn:hover {
+  background: var(--rose);
+  color: white;
+}
+
 /* ── Responsive ── */
 @media (max-width: 700px) {
   .header,
