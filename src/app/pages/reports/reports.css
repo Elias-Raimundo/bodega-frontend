@@ -100,6 +100,12 @@
   overflow: hidden;
 }
 
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
 .filters::before {
   content: '';
   position: absolute;

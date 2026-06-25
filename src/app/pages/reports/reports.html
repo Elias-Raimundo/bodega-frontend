@@ -9,66 +9,29 @@
 
     <div class="field">
       <label>Desde</label>
-
-      <input
-        type="date"
-        [(ngModel)]="fromDate"
-      />
-
-      <input
-        type="time"
-        [(ngModel)]="fromTime"
-      />
+      <input type="date" [(ngModel)]="fromDate" />
+      <input type="time" [(ngModel)]="fromTime" />
     </div>
 
     <div class="field">
       <label>Hasta</label>
-
-      <input
-        type="date"
-        [(ngModel)]="toDate"
-      />
-
-      <input
-        type="time"
-        [(ngModel)]="toTime"
-      />
+      <input type="date" [(ngModel)]="toDate" />
+      <input type="time" [(ngModel)]="toTime" />
     </div>
 
-    <button (click)="loadReport()">
-      Buscar
-    </button>
+    <button (click)="loadReport()">Buscar</button>
 
   </div>
 
   <!-- TABS -->
   <div class="tabs">
-
-    <button
-      [class.active]="activeTab === 'sales'"
-      (click)="activeTab = 'sales'"
-    >
-      Ventas
-    </button>
-
-    <button
-      [class.active]="activeTab === 'products'"
-      (click)="activeTab = 'products'"
-    >
-      Productos
-    </button>
-
-    <button
-      [class.active]="activeTab === 'cash'"
-      (click)="activeTab = 'cash'"
-    >
-      Caja
-    </button>
-
+    <button [class.active]="activeTab === 'sales'" (click)="activeTab = 'sales'">Ventas</button>
+    <button [class.active]="activeTab === 'products'" (click)="activeTab = 'products'">Productos</button>
+    <button [class.active]="activeTab === 'cash'" (click)="activeTab = 'cash'">Caja</button>
   </div>
 
   <!-- TAB VENTAS -->
-  <div *ngIf="activeTab === 'sales' && report">
+  <div *ngIf="activeTab === 'sales' && report" class="tab-content">
 
     <div class="stats">
 
@@ -134,57 +97,33 @@
 
     </div>
 
-    <div
-      class="sales-table"
-      *ngIf="report.sales?.length"
-    >
+    <div class="sales-table" *ngIf="report.sales?.length">
 
       <div class="table-header">
-
         <div>Fecha</div>
         <div>Total</div>
         <div>Pagos</div>
         <div>Productos</div>
         <div></div>
-
       </div>
 
-      <div
-        class="table-row"
-        *ngFor="let sale of report.sales"
-      >
+      <div class="table-row" *ngFor="let sale of report.sales">
+
+        <div>{{ sale.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+
+        <div class="green">${{ sale.total | number:'1.0-0' }}</div>
 
         <div>
-          {{ sale.createdAt | date:'dd/MM/yyyy HH:mm' }}
-        </div>
-
-        <div class="green">
-          ${{ sale.total | number:'1.0-0' }}
-        </div>
-
-        <div>
-          <span
-            *ngFor="let payment of sale.payments; let last = last"
-          >
+          <span *ngFor="let payment of sale.payments; let last = last">
             {{ getPaymentMethodLabel(payment.method) }}
-
-            <span *ngIf="!last">
-              +
-            </span>
+            <span *ngIf="!last"> + </span>
           </span>
         </div>
 
-        <div>
-          {{ sale.items.length }}
-        </div>
+        <div>{{ sale.items.length }}</div>
 
         <div>
-          <button
-            class="detail-btn"
-            (click)="openSale(sale)"
-          >
-            Ver
-          </button>
+          <button class="detail-btn" (click)="openSale(sale)">Ver</button>
         </div>
 
       </div>
@@ -194,68 +133,37 @@
   </div>
 
   <!-- TAB PRODUCTOS -->
-  <div *ngIf="activeTab === 'products' && report">
+  <div *ngIf="activeTab === 'products' && report" class="tab-content">
 
     <div class="products-report-card">
 
       <div class="products-report-header">
-
         <div>
           <h3>🏆 Productos vendidos</h3>
-          <p>
-            Ranking de productos vendidos en el período seleccionado
-          </p>
+          <p>Ranking de productos vendidos en el período seleccionado</p>
         </div>
-
-        <strong>
-          {{ getSoldProducts().length }} productos
-        </strong>
-
+        <strong>{{ getSoldProducts().length }} productos</strong>
       </div>
 
-      <div
-        class="products-ranking"
-        *ngIf="getSoldProducts().length"
-      >
+      <div class="products-ranking" *ngIf="getSoldProducts().length">
 
         <div class="ranking-header">
-
           <div>#</div>
           <div>Producto</div>
           <div>Unidades</div>
           <div>Facturación</div>
-
         </div>
 
-        <div
-          class="ranking-row"
-          *ngFor="let product of getSoldProducts(); let i = index"
-        >
-
-          <div class="ranking-number">
-            {{ i + 1 }}
-          </div>
-
-          <div class="ranking-product">
-            {{ product.productName }}
-          </div>
-
-          <div>
-            {{ product.quantity }}
-          </div>
-
-          <div class="green">
-            ${{ product.total | number:'1.0-0' }}
-          </div>
-
+        <div class="ranking-row" *ngFor="let product of getSoldProducts(); let i = index">
+          <div class="ranking-number">{{ i + 1 }}</div>
+          <div class="ranking-product">{{ product.productName }}</div>
+          <div>{{ product.quantity }}</div>
+          <div class="green">${{ product.total | number:'1.0-0' }}</div>
         </div>
 
       </div>
 
-      <div
-        class="empty-ranking"
-        *ngIf="!getSoldProducts().length"
-      >
+      <div class="empty-ranking" *ngIf="!getSoldProducts().length">
         No hay productos vendidos en este período.
       </div>
 
@@ -264,65 +172,32 @@
   </div>
 
   <!-- TAB CAJA -->
-  <div *ngIf="activeTab === 'cash' && report">
+  <div *ngIf="activeTab === 'cash' && report" class="tab-content">
 
     <!-- CAJA DIARIA -->
     <div class="daily-cash-card">
 
       <div class="daily-cash-header">
-
         <div>
           <h3>🧾 Caja diaria</h3>
-
-          <p>
-            Apertura, gastos y cierre real del día
-          </p>
+          <p>Apertura, gastos y cierre real del día</p>
         </div>
-
-        <span
-          class="cash-status"
-          [class.open]="dailyCash"
-        >
+        <span class="cash-status" [class.open]="dailyCash">
           {{ dailyCash ? 'Abierta' : 'Cerrada' }}
         </span>
-
       </div>
 
       <!-- ABRIR CAJA -->
-      <div
-        class="open-cash-box"
-        *ngIf="!dailyCash"
-      >
+      <div class="open-cash-box" *ngIf="!dailyCash">
 
-        <div
-          class="last-cash-suggestion"
-          *ngIf="lastClosedCash"
-        >
-
-          <span>
-            Saldo sugerido del último cierre:
-          </span>
-
-          <strong>
-            ${{ lastClosedCash.closingAmount | number:'1.0-0' }}
-          </strong>
-
-          <button (click)="useLastClosingAmount()">
-            Usar saldo
-          </button>
-
+        <div class="last-cash-suggestion" *ngIf="lastClosedCash">
+          <span>Saldo sugerido del último cierre:</span>
+          <strong>${{ lastClosedCash.closingAmount | number:'1.0-0' }}</strong>
+          <button (click)="useLastClosingAmount()">Usar saldo</button>
         </div>
 
-        <input
-          type="number"
-          min="0"
-          [(ngModel)]="openingAmount"
-          placeholder="Monto inicial"
-        />
-
-        <button (click)="openDailyCash()">
-          Abrir caja
-        </button>
+        <input type="number" min="0" [(ngModel)]="openingAmount" placeholder="Monto inicial" />
+        <button (click)="openDailyCash()">Abrir caja</button>
 
       </div>
 
@@ -330,136 +205,62 @@
       <div *ngIf="dailyCash">
 
         <div class="daily-cash-summary">
-
           <div>
             <span>Monto inicial</span>
-            <strong>
-              ${{ dailyCash.openingAmount | number:'1.0-0' }}
-            </strong>
+            <strong>${{ dailyCash.openingAmount | number:'1.0-0' }}</strong>
           </div>
-
           <div>
             <span>Ventas efectivo</span>
-            <strong class="green">
-              ${{ getDailyCashSales() | number:'1.0-0' }}
-            </strong>
+            <strong class="green">${{ getDailyCashSales() | number:'1.0-0' }}</strong>
           </div>
-
           <div>
             <span>Gastos</span>
-            <strong class="red">
-              -${{ getExpensesTotal() | number:'1.0-0' }}
-            </strong>
+            <strong class="red">-${{ getExpensesTotal() | number:'1.0-0' }}</strong>
           </div>
-
           <div>
             <span>Caja teórica</span>
-            <strong>
-              ${{ getDailyTheoreticalCash() | number:'1.0-0' }}
-            </strong>
+            <strong>${{ getDailyTheoreticalCash() | number:'1.0-0' }}</strong>
           </div>
-
         </div>
 
-        <!-- GASTOS -->
         <div class="expense-box">
-
           <h4>Registrar gasto</h4>
-
           <div class="expense-form">
-
-            <input
-              type="text"
-              [(ngModel)]="expenseDescription"
-              placeholder="Descripción"
-            />
-
-            <input
-              type="number"
-              min="0"
-              [(ngModel)]="expenseAmount"
-              placeholder="Monto"
-            />
-
-            <button (click)="addDailyExpense()">
-              Agregar
-            </button>
-
+            <input type="text" [(ngModel)]="expenseDescription" placeholder="Descripción" />
+            <input type="number" min="0" [(ngModel)]="expenseAmount" placeholder="Monto" />
+            <button (click)="addDailyExpense()">Agregar</button>
           </div>
-
         </div>
 
         <div class="expenses-list">
-
-          <div
-            class="expense-row"
-            *ngFor="let expense of dailyCashExpenses"
-          >
-
+          <div class="expense-row" *ngFor="let expense of dailyCashExpenses">
             <div>
               <strong>{{ expense.description }}</strong>
-
-              <span>
-                {{ expense.createdAt | date:'dd/MM HH:mm' }}
-              </span>
+              <span>{{ expense.createdAt | date:'dd/MM HH:mm' }}</span>
             </div>
-
-            <b>
-              -${{ expense.amount | number:'1.0-0' }}
-            </b>
-
-            <button
-              class="delete-expense-btn"
-              (click)="deleteDailyExpense(expense.id)"
-            >
-              ✕
-            </button>
-
+            <b>-${{ expense.amount | number:'1.0-0' }}</b>
+            <button class="delete-expense-btn" (click)="deleteDailyExpense(expense.id)">✕</button>
           </div>
-
         </div>
 
-        <!-- CERRAR CAJA DIARIA -->
         <div class="close-daily-box">
-
           <h4>Cerrar caja diaria</h4>
-
           <div class="daily-close-preview">
-
             <div>
               <span>Caja teórica</span>
-              <strong>
-                ${{ getDailyTheoreticalCash() | number:'1.0-0' }}
-              </strong>
+              <strong>${{ getDailyTheoreticalCash() | number:'1.0-0' }}</strong>
             </div>
-
             <div>
               <span>Queda para mañana</span>
-              <strong>
-                ${{ closingAmount || 0 | number:'1.0-0' }}
-              </strong>
+              <strong>${{ closingAmount || 0 | number:'1.0-0' }}</strong>
             </div>
-
             <div>
               <span>Retirado estimado</span>
-              <strong class="green">
-                ${{ getDailyWithdrawPreview() | number:'1.0-0' }}
-              </strong>
+              <strong class="green">${{ getDailyWithdrawPreview() | number:'1.0-0' }}</strong>
             </div>
-
           </div>
-
-          <input
-            type="number"
-            min="0"
-            [(ngModel)]="closingAmount"
-            placeholder="Monto que queda para mañana"
-          />
-
-          <button (click)="closeDailyCash()">
-            Cerrar caja diaria
-          </button>
-
+          <input type="number" min="0" [(ngModel)]="closingAmount" placeholder="Monto que queda para mañana" />
+          <button (click)="closeDailyCash()">Cerrar caja diaria</button>
         </div>
 
       </div>
@@ -471,414 +272,188 @@
 
       <h3>Historial de caja diaria</h3>
       <div class="history-scroll">
-        <div
-          class="empty-ranking"
-          *ngIf="!dailyCashHistory.length"
-        >
+
+        <div class="empty-ranking" *ngIf="!dailyCashHistory.length">
           Todavía no hay cajas diarias cerradas.
         </div>
-        <div
-          class="daily-history-row"
-          *ngFor="let cash of dailyCashHistory"
-          (click)="openDailyCashDetail(cash)"
-        >
+
+        <div class="daily-history-row" *ngFor="let cash of dailyCashHistory" (click)="openDailyCashDetail(cash)">
           <div>
-            <strong>
-              {{ cash.openedAt | date:'dd/MM/yyyy HH:mm' }}
-            </strong>
-
-            <span>
-              Estado: {{ cash.status }}
-            </span>
+            <strong>{{ cash.openedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
+            <span>Estado: {{ cash.status }}</span>
           </div>
-
           <div>
             <span>Caja teórica</span>
             <strong>${{ cash.expectedAmount | number:'1.0-0' }}</strong>
           </div>
-
           <div>
             <span>Queda para mañana</span>
             <strong>${{ cash.closingAmount | number:'1.0-0' }}</strong>
           </div>
-
           <div>
             <span>Retirado</span>
-            <strong class="green">
-              ${{ cash.withdrawnAmount | number:'1.0-0' }}
-            </strong>
+            <strong class="green">${{ cash.withdrawnAmount | number:'1.0-0' }}</strong>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
 
     <!-- CIERRE POR PERÍODO -->
     <div class="cash-grid">
 
       <div class="cash-summary-card">
-
         <h3>💵 Cierre por período</h3>
-
-        <p class="cash-description">
-          Resumen del período seleccionado
-        </p>
-
-        <div class="cash-total">
-          ${{ report.total | number:'1.0-0' }}
-        </div>
-
+        <p class="cash-description">Resumen del período seleccionado</p>
+        <div class="cash-total">${{ report.total | number:'1.0-0' }}</div>
         <div class="cash-info">
-
           <div>
             <span>Ventas</span>
             <strong>{{ report.salesCount }}</strong>
           </div>
-
           <div>
             <span>Productos vendidos</span>
             <strong>{{ report.productsSold }}</strong>
           </div>
-
         </div>
-
-        <button
-          class="close-cash-btn"
-          [disabled]="report.salesCount === 0"
-          (click)="closeCash()"
-        >
+        <button class="close-cash-btn" [disabled]="report.salesCount === 0" (click)="closeCash()">
           Guardar cierre del período
         </button>
-
       </div>
 
       <div class="cash-payment-card">
-
         <h3>Medios de pago</h3>
-
         <div class="cash-payment-row">
           <span>Efectivo</span>
           <strong>${{ report.cash | number:'1.0-0' }}</strong>
         </div>
-
         <div class="cash-payment-row">
           <span>Transferencia</span>
           <strong>${{ report.transfer | number:'1.0-0' }}</strong>
         </div>
-
         <div class="cash-payment-row">
           <span>Débito</span>
           <strong>${{ report.debit | number:'1.0-0' }}</strong>
         </div>
-
         <div class="cash-payment-row">
           <span>Crédito</span>
           <strong>${{ report.credit | number:'1.0-0' }}</strong>
         </div>
-
       </div>
 
     </div>
 
     <div class="cash-history-card">
-
       <h3>Historial de cierres por período</h3>
       <div class="history-scroll">
-        <div
-          class="empty-ranking"
-          *ngIf="!cashClosures.length"
-        >
+
+        <div class="empty-ranking" *ngIf="!cashClosures.length">
           Todavía no hay cierres de caja registrados.
         </div>
 
-        <div
-          class="cash-closure-row"
-          *ngFor="let closure of cashClosures"
-          (click)="openClosure(closure)"
-        >
-
+        <div class="cash-closure-row" *ngFor="let closure of cashClosures" (click)="openClosure(closure)">
           <div>
-            <strong>
-              {{ closure.closedAt | date:'dd/MM/yyyy HH:mm' }}
-            </strong>
-
-            <span>
-              {{ closure.fromDate | date:'dd/MM/yyyy HH:mm' }}
-              -
-              {{ closure.toDate | date:'dd/MM/yyyy HH:mm' }}
-            </span>
+            <strong>{{ closure.closedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
+            <span>{{ closure.fromDate | date:'dd/MM/yyyy HH:mm' }} - {{ closure.toDate | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
-
-          <div class="cash-closure-total">
-            ${{ closure.total | number:'1.0-0' }}
-          </div>
-
+          <div class="cash-closure-total">${{ closure.total | number:'1.0-0' }}</div>
         </div>
+
       </div>
     </div>
 
   </div>
 
-  <!-- MODAL -->
-  <div
-    class="modal-overlay"
-    *ngIf="selectedSale"
-  >
-
+  <!-- MODAL VENTA -->
+  <div class="modal-overlay" *ngIf="selectedSale">
     <div class="modal">
 
       <div class="modal-header">
-
-        <h3>
-          Venta #{{ selectedSale.id }}
-        </h3>
-
-        <button
-          class="close-btn"
-          (click)="closeSale()"
-        >
-          ✕
-        </button>
-
+        <h3>Venta #{{ selectedSale.id }}</h3>
+        <button class="close-btn" (click)="closeSale()">✕</button>
       </div>
 
-      <div class="modal-date">
-        {{
-          selectedSale.createdAt
-          | date:'dd/MM/yyyy HH:mm'
-        }}
-      </div>
+      <div class="modal-date">{{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
 
       <div class="modal-section">
-
         <h4>Productos</h4>
-
-        <div
-          class="product-line"
-          *ngFor="let item of selectedSale.items"
-        >
-
-          <div>
-            {{ item.productName }}
-            x{{ item.quantity }}
-          </div>
-
-          <div>
-            ${{ item.price * item.quantity | number:'1.0-0' }}
-          </div>
-
+        <div class="product-line" *ngFor="let item of selectedSale.items">
+          <div>{{ item.productName }} x{{ item.quantity }}</div>
+          <div>${{ item.price * item.quantity | number:'1.0-0' }}</div>
         </div>
-
       </div>
 
-      <div class="modal-total">
-        Total:
-        ${{ selectedSale.total | number:'1.0-0' }}
-      </div>
+      <div class="modal-total">Total: ${{ selectedSale.total | number:'1.0-0' }}</div>
 
       <div class="modal-section">
-
         <h4>Pagos</h4>
-
-        <div
-          class="payment-line"
-          *ngFor="let payment of selectedSale.payments"
-        >
-
-          <div>
-            {{ getPaymentMethodLabel(payment.method) }}
-          </div>
-
-          <div>
-            ${{ payment.amount | number:'1.0-0' }}
-          </div>
-
+        <div class="payment-line" *ngFor="let payment of selectedSale.payments">
+          <div>{{ getPaymentMethodLabel(payment.method) }}</div>
+          <div>${{ payment.amount | number:'1.0-0' }}</div>
         </div>
-
       </div>
 
     </div>
-
   </div>
 
-  <div
-  class="modal-overlay"
-  *ngIf="selectedClosure"
-  >
+  <!-- MODAL CIERRE -->
+  <div class="modal-overlay" *ngIf="selectedClosure">
     <div class="modal closure-modal">
 
       <div class="modal-header no-print">
         <h3>Cierre de caja</h3>
-
-        <button
-          class="close-btn"
-          (click)="closeClosure()"
-        >
-          ✕
-        </button>
+        <button class="close-btn" (click)="closeClosure()">✕</button>
       </div>
 
       <div class="print-area">
-
         <h2>Cierre de caja</h2>
-
-        <p>
-          <strong>Período:</strong>
-          {{ selectedClosure.fromDate | date:'dd/MM/yyyy HH:mm' }}
-          -
-          {{ selectedClosure.toDate | date:'dd/MM/yyyy HH:mm' }}
-        </p>
-
-        <p>
-          <strong>Cerrado:</strong>
-          {{ selectedClosure.closedAt | date:'dd/MM/yyyy HH:mm' }}
-        </p>
-
-        <div class="closure-total">
-          Total: ${{ selectedClosure.total | number:'1.0-0' }}
-        </div>
-
+        <p><strong>Período:</strong> {{ selectedClosure.fromDate | date:'dd/MM/yyyy HH:mm' }} - {{ selectedClosure.toDate | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p><strong>Cerrado:</strong> {{ selectedClosure.closedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        <div class="closure-total">Total: ${{ selectedClosure.total | number:'1.0-0' }}</div>
         <div class="closure-detail-grid">
-
-          <div>
-            <span>Ventas</span>
-            <strong>{{ selectedClosure.salesCount }}</strong>
-          </div>
-
-          <div>
-            <span>Productos vendidos</span>
-            <strong>{{ selectedClosure.productsSold }}</strong>
-          </div>
-
-          <div>
-            <span>Efectivo</span>
-            <strong>${{ selectedClosure.cash | number:'1.0-0' }}</strong>
-          </div>
-
-          <div>
-            <span>Transferencia</span>
-            <strong>${{ selectedClosure.transfer | number:'1.0-0' }}</strong>
-          </div>
-
-          <div>
-            <span>Débito</span>
-            <strong>${{ selectedClosure.debit | number:'1.0-0' }}</strong>
-          </div>
-
-          <div>
-            <span>Crédito</span>
-            <strong>${{ selectedClosure.credit | number:'1.0-0' }}</strong>
-          </div>
-
+          <div><span>Ventas</span><strong>{{ selectedClosure.salesCount }}</strong></div>
+          <div><span>Productos vendidos</span><strong>{{ selectedClosure.productsSold }}</strong></div>
+          <div><span>Efectivo</span><strong>${{ selectedClosure.cash | number:'1.0-0' }}</strong></div>
+          <div><span>Transferencia</span><strong>${{ selectedClosure.transfer | number:'1.0-0' }}</strong></div>
+          <div><span>Débito</span><strong>${{ selectedClosure.debit | number:'1.0-0' }}</strong></div>
+          <div><span>Crédito</span><strong>${{ selectedClosure.credit | number:'1.0-0' }}</strong></div>
         </div>
-
       </div>
 
-      <button
-        class="print-btn no-print"
-        (click)="printClosure()"
-      >
-        Exportar PDF
-      </button>
+      <button class="print-btn no-print" (click)="printClosure()">Exportar PDF</button>
 
     </div>
   </div>
 
-  <div
-    class="modal-overlay"
-    *ngIf="selectedDailyCash"
-  >
+  <!-- MODAL CAJA DIARIA -->
+  <div class="modal-overlay" *ngIf="selectedDailyCash">
     <div class="modal closure-modal">
 
       <div class="modal-header">
         <h3>Detalle de caja diaria</h3>
-
-        <button
-          class="close-btn"
-          (click)="closeDailyCashDetail()"
-        >
-          ✕
-        </button>
+        <button class="close-btn" (click)="closeDailyCashDetail()">✕</button>
       </div>
 
       <div class="closure-detail-grid">
-
-        <div>
-          <span>Abierta</span>
-          <strong>
-            {{ selectedDailyCash.openedAt | date:'dd/MM/yyyy HH:mm' }}
-          </strong>
-        </div>
-
-        <div>
-          <span>Cerrada</span>
-          <strong>
-            {{ selectedDailyCash.closedAt | date:'dd/MM/yyyy HH:mm' }}
-          </strong>
-        </div>
-
-        <div>
-          <span>Monto inicial</span>
-          <strong>${{ selectedDailyCash.openingAmount | number:'1.0-0' }}</strong>
-        </div>
-
-        <div>
-          <span>Ventas efectivo</span>
-          <strong>${{ selectedDailyCash.cashSales | number:'1.0-0' }}</strong>
-        </div>
-
-        <div>
-          <span>Gastos</span>
-          <strong class="red">
-            -${{ selectedDailyCash.expensesTotal | number:'1.0-0' }}
-          </strong>
-        </div>
-
-        <div>
-          <span>Efectivo esperado</span>
-          <strong>${{ selectedDailyCash.expectedAmount | number:'1.0-0' }}</strong>
-        </div>
-
-        <div>
-          <span>Queda para mañana</span>
-          <strong>${{ selectedDailyCash.closingAmount | number:'1.0-0' }}</strong>
-        </div>
-
-        <div>
-          <span>Retirado</span>
-          <strong class="green">
-            ${{ selectedDailyCash.withdrawnAmount | number:'1.0-0' }}
-          </strong>
-        </div>
-
+        <div><span>Abierta</span><strong>{{ selectedDailyCash.openedAt | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+        <div><span>Cerrada</span><strong>{{ selectedDailyCash.closedAt | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+        <div><span>Monto inicial</span><strong>${{ selectedDailyCash.openingAmount | number:'1.0-0' }}</strong></div>
+        <div><span>Ventas efectivo</span><strong>${{ selectedDailyCash.cashSales | number:'1.0-0' }}</strong></div>
+        <div><span>Gastos</span><strong class="red">-${{ selectedDailyCash.expensesTotal | number:'1.0-0' }}</strong></div>
+        <div><span>Efectivo esperado</span><strong>${{ selectedDailyCash.expectedAmount | number:'1.0-0' }}</strong></div>
+        <div><span>Queda para mañana</span><strong>${{ selectedDailyCash.closingAmount | number:'1.0-0' }}</strong></div>
+        <div><span>Retirado</span><strong class="green">${{ selectedDailyCash.withdrawnAmount | number:'1.0-0' }}</strong></div>
       </div>
 
       <div class="modal-section">
-
         <h4>Gastos registrados</h4>
-
-        <div
-          class="empty-ranking"
-          *ngIf="!selectedDailyCashExpenses.length"
-        >
+        <div class="empty-ranking" *ngIf="!selectedDailyCashExpenses.length">
           No hubo gastos registrados.
         </div>
-
-        <div
-          class="payment-line"
-          *ngFor="let expense of selectedDailyCashExpenses"
-        >
-
-          <div>
-            {{ expense.description }}
-          </div>
-
-          <div class="red">
-            -${{ expense.amount | number:'1.0-0' }}
-          </div>
-
+        <div class="payment-line" *ngFor="let expense of selectedDailyCashExpenses">
+          <div>{{ expense.description }}</div>
+          <div class="red">-${{ expense.amount | number:'1.0-0' }}</div>
         </div>
-
       </div>
 
     </div>
