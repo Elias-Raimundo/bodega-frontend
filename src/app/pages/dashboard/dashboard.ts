@@ -21,6 +21,9 @@ export class Dashboard implements OnInit {
 
   products: any[] = [];
 
+  loadingStats = false;
+  loadingSales = false;
+
   constructor(private router: Router, private http: HttpClient, private cdRef: ChangeDetectorRef) {}
 
   ngOnInit(){
@@ -33,40 +36,42 @@ export class Dashboard implements OnInit {
 
   loadStats() {
     const token = localStorage.getItem('token');
+    this.loadingStats = true;
+    this.cdRef.detectChanges();
 
     this.http.get('https://bodega-backend-9c4f.onrender.com/products/stats', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-      }).subscribe({
-        next: (res: any) => {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).subscribe({
+      next: (res: any) => {
         this.stats = { ...res };
-        console.log("Stats: ", res);
-
+        this.loadingStats = false;
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error stats:', err);
+        this.loadingStats = false;
+        this.cdRef.detectChanges();
       }
     });
   }
 
   loadSales() {
     const token = localStorage.getItem('token');
+    this.loadingSales = true;
+    this.cdRef.detectChanges();
 
     this.http.get('https://bodega-backend-9c4f.onrender.com/sales', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-      }).subscribe({
-        next: (res: any) => {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).subscribe({
+      next: (res: any) => {
         this.sales = res;
-        console.log("Sales: ", res);
-
+        this.loadingSales = false;
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error sales:', err);
+        this.loadingSales = false;
+        this.cdRef.detectChanges();
       }
     });
   }

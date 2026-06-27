@@ -36,6 +36,8 @@ export class Reports implements OnInit {
   toDate = '';
   toTime = '23:59';
 
+  loadingReport = false;
+
   selectedSale: any = null;
 
   selectedClosure: any = null;
@@ -74,24 +76,26 @@ export class Reports implements OnInit {
 
   loadReport() {
     const token = localStorage.getItem('token');
+    const from = `${this.fromDate}T${this.fromTime}`;
+    const to = `${this.toDate}T${this.toTime}`;
 
-    const from =
-      `${this.fromDate}T${this.fromTime}`;
-
-    const to =
-      `${this.toDate}T${this.toTime}`;
+    this.loadingReport = true;
+    this.cdRef.detectChanges();
 
     this.http.get<any>(
       `https://bodega-backend-9c4f.onrender.com/sales/report?from=${from}&to=${to}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    ).subscribe({
+      next: (res) => {
+        this.report = res;
+        this.loadingReport = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.loadingReport = false;
+        this.cdRef.detectChanges();
       }
-    ).subscribe(res => {
-      this.report = res;
-      this.cdRef.detectChanges();
-      console.log(res);
     });
   }
 

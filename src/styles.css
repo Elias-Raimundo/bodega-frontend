@@ -55,3 +55,31 @@ body {
 .toast-warning {
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.skeleton-item {
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(99,102,241,0.12);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-item:nth-child(2) { animation-delay: 0.1s; opacity: 0.85; }
+.skeleton-item:nth-child(3) { animation-delay: 0.2s; opacity: 0.7; }
+.skeleton-item:nth-child(4) { animation-delay: 0.3s; opacity: 0.55; }
+.skeleton-item:nth-child(5) { animation-delay: 0.4s; opacity: 0.4; }
+.skeleton-item:nth-child(6) { animation-delay: 0.5s; opacity: 0.35; }
+.skeleton-item:nth-child(7) { animation-delay: 0.6s; opacity: 0.3; }
+.skeleton-item:nth-child(8) { animation-delay: 0.7s; opacity: 0.25; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

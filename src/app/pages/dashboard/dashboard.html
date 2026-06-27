@@ -4,8 +4,13 @@
     <h1>📊 Resumen del negocio</h1>
   </div>
 
+  <!-- SKELETON stats -->
+  <div class="stats" *ngIf="loadingStats">
+    <div class="skeleton-item" *ngFor="let i of [1,2,3,4]" style="height: 100px; border-radius: 26px;"></div>
+  </div>
+
   <!-- KPIs -->
-  <div class="stats" *ngIf="stats">
+  <div class="stats" *ngIf="!loadingStats && stats">
 
     <div class="stat-card">
       <h4>📦 Productos</h4>
@@ -85,10 +90,16 @@
 
     </div>
 
-    <!-- COLUMNA DERECHA: Últimas ventas -->
     <div class="section">
-      <h3>Últimas ventas</h3>
-      <div class="recent-sales">
+    <h3>Últimas ventas</h3>
+
+    <!-- SKELETON -->
+    <div *ngIf="loadingSales" class="skeleton-list">
+      <div class="skeleton-item" *ngFor="let i of [1,2,3,4,5]"></div>
+    </div>
+
+    <!-- VENTAS -->
+    <div class="recent-sales" *ngIf="!loadingSales">
 
         <div
           class="sale"

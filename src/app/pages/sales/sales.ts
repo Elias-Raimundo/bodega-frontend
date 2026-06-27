@@ -27,6 +27,8 @@ export class Sales implements OnInit {
   selectedCustomerId: number | null = null;
   newCustomerName = '';
 
+  loadingProducts = false;
+
   searchTimeout: any = null;
 
   payments = [
@@ -63,6 +65,9 @@ export class Sales implements OnInit {
       ? `https://bodega-backend-9c4f.onrender.com/products?search=${encodeURIComponent(search)}`
       : 'https://bodega-backend-9c4f.onrender.com/products';
 
+    this.loadingProducts = true; 
+    this.cd.detectChanges();
+
     this.http.get<any[]>(url, { headers: this.getHeaders() })
       .subscribe({
         next: (res) => {
@@ -75,9 +80,14 @@ export class Sales implements OnInit {
             ).values()
           ].sort((a: any, b: any) => a.name.localeCompare(b.name));
           this.updateFilteredProducts();
+          this.loadingProducts = false; 
           this.cd.detectChanges();
         },
-        error: (err) => console.error('Error fetching products:', err)
+        error: (err) => {
+          console.error('Error fetching products:', err);
+          this.loadingProducts = false; 
+          this.cd.detectChanges();
+        }
       });
   }
 

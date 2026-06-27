@@ -20,6 +20,9 @@ export class PreparedProducts implements OnInit {
 
   editingId: number | null = null;
 
+  loadingProducts = false;
+  loadingPrepared = false;
+
   form = {
     name: '',
     price: 0,
@@ -59,33 +62,45 @@ export class PreparedProducts implements OnInit {
 
   loadPreparedProducts() {
     const token = this.getToken();
+    this.loadingPrepared = true;
+    this.cdRef.detectChanges();
 
     this.http.get<any[]>(
       'https://bodega-backend-9c4f.onrender.com/prepared-products',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      { headers: { Authorization: `Bearer ${token}` } }
+    ).subscribe({
+      next: (res) => {
+        this.preparedProducts = res;
+        this.loadingPrepared = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.loadingPrepared = false;
+        this.cdRef.detectChanges();
       }
-    ).subscribe(res => {
-      this.preparedProducts = res;
-      this.cdRef.detectChanges();
     });
   }
 
   loadProducts() {
     const token = this.getToken();
+    this.loadingProducts = true;
+    this.cdRef.detectChanges();
 
     this.http.get<any[]>(
       'https://bodega-backend-9c4f.onrender.com/products',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      { headers: { Authorization: `Bearer ${token}` } }
+    ).subscribe({
+      next: (res) => {
+        this.products = res;
+        this.loadingProducts = false;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.loadingProducts = false;
+        this.cdRef.detectChanges();
       }
-    ).subscribe(res => {
-      this.products = res;
-      this.cdRef.detectChanges();
     });
   }
 

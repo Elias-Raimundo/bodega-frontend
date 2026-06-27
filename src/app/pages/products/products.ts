@@ -44,6 +44,8 @@ export class Products implements OnInit {
 
   searchTimeout: any = null;
 
+  loadingProducts = false;
+
   selectedImportFile: File | null = null;
   importing = false;
 
@@ -70,9 +72,20 @@ export class Products implements OnInit {
       ? `${this.apiUrl}/products?search=${encodeURIComponent(search)}`
       : `${this.apiUrl}/products`;
 
-    this.http.get<any[]>(url).subscribe(res => {
-      this.products = res;
-      this.cdr.detectChanges();
+    this.loadingProducts = true;
+    this.cdr.detectChanges();
+
+    this.http.get<any[]>(url).subscribe({
+      next: (res) => {
+        this.products = res;
+        this.loadingProducts = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error fetching products:', err);
+        this.loadingProducts = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 

@@ -34,8 +34,13 @@
       artículos
     </div>
 
-    <!-- PRODUCTOS -->
-    <div class="product-grid">
+    <!-- SKELETON mientras carga -->
+    <div *ngIf="loadingProducts" class="skeleton-list">
+      <div class="skeleton-item" *ngFor="let i of [1,2,3,4,5]"></div>
+    </div>
+
+    <!-- PRODUCTOS cuando cargó -->
+    <div class="product-grid" *ngIf="!loadingProducts">
 
       <div *ngFor="let group of groupedProductsMap | keyvalue">
 
@@ -53,31 +58,15 @@
           >
 
             <div class="product-info product-line">
-
-              <div class="p-name">
-                {{ p.name }}
-              </div>
-
+              <div class="p-name">{{ p.name }}</div>
               <div class="p-stock">
-                {{
-                  p.stock > 0
-                  ? 'Stock: ' + (p.stock | number:'1.0-2')
-                  : 'SIN STOCK'
-                }}
+                {{ p.stock > 0 ? 'Stock: ' + (p.stock | number:'1.0-2') : 'SIN STOCK' }}
               </div>
-
             </div>
 
             <div class="product-right">
-
-              <div class="p-price">
-                ${{ p.price | number:'1.0-0'}}
-              </div>
-
-              <button class="add-btn">
-                +
-              </button>
-
+              <div class="p-price">${{ p.price | number:'1.0-0'}}</div>
+              <button class="add-btn">+</button>
             </div>
 
           </div>

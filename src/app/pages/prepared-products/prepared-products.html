@@ -144,23 +144,25 @@
       placeholder="Buscar trago..."
     />
 
-    <div
-      class="empty"
-      *ngIf="!preparedProducts.length"
-    >
-      No hay preparados registrados.
+    <!-- SKELETON -->
+    <div *ngIf="loadingPrepared" class="skeleton-list">
+      <div class="skeleton-item" *ngFor="let i of [1,2,3,4,5]"></div>
     </div>
 
-    <div
-      class="empty"
-      *ngIf="preparedProducts.length && !filteredPreparedProducts.length"
-    >
-      No hay preparados con ese nombre.
-    </div>
+    <!-- LISTA -->
+    <ng-container *ngIf="!loadingPrepared">
 
-    <div
-      class="prepared-row"
-      *ngFor="let prepared of filteredPreparedProducts"
+      <div class="empty" *ngIf="!preparedProducts.length">
+        No hay preparados registrados.
+      </div>
+
+      <div class="empty" *ngIf="preparedProducts.length && !filteredPreparedProducts.length">
+        No hay preparados con ese nombre.
+      </div>
+
+      <div
+        class="prepared-row"
+        *ngFor="let prepared of filteredPreparedProducts"
       [class.editing]="editingId === prepared.id"
     >
 
@@ -199,6 +201,7 @@
       </div>
 
     </div>
+    </ng-container>
 
   </div>
 
