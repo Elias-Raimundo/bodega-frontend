@@ -6,7 +6,11 @@
     <h3>Artículos</h3>
 
     <!-- FILTROS -->
-    <select [(ngModel)]="selectedCategoryId" class="select">
+    <select 
+      [(ngModel)]="selectedCategoryId" 
+      (ngModelChange)="updateFilteredProducts()"
+      class="select"
+    >
       <option [ngValue]="null">Todas las categorías</option>
 
       <option
@@ -20,6 +24,7 @@
     <input
       type="text"
       [(ngModel)]="search"
+      (ngModelChange)="onSearchChange()"
       placeholder="Buscar producto..."
       class="search"
     />
@@ -32,7 +37,7 @@
     <!-- PRODUCTOS -->
     <div class="product-grid">
 
-      <div *ngFor="let group of groupedProducts() | keyvalue">
+      <div *ngFor="let group of groupedProductsMap | keyvalue">
 
         <div class="category-title">
           {{ group.key }}

@@ -42,6 +42,8 @@ export class Products implements OnInit {
   showCategoriesModal = false;
   stockFilter = 'all';
 
+  searchTimeout: any = null;
+
   selectedImportFile: File | null = null;
   importing = false;
 
@@ -63,12 +65,22 @@ export class Products implements OnInit {
       });
   }
 
-  load() {
-    this.http.get<any[]>(`${this.apiUrl}/products`)
-      .subscribe(res => {
-        this.products = res;
-        this.cdr.detectChanges();
-      });
+  load(search: string = '') {
+    const url = search
+      ? `${this.apiUrl}/products?search=${encodeURIComponent(search)}`
+      : `${this.apiUrl}/products`;
+
+    this.http.get<any[]>(url).subscribe(res => {
+      this.products = res;
+      this.cdr.detectChanges();
+    });
+  }
+
+  onSearchChange() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.load(this.search);
+    }, 300);
   }
 
   loadCategories() {
@@ -236,29 +248,25 @@ export class Products implements OnInit {
     });
   }
 
-  filteredProducts() {
-    let filtered = this.products.filter(p => {
+filteredProducts() {
+  let filtered = this.products.filter(p => {
 
-      const matchSearch =
-        p.name.toLowerCase()
-          .includes(this.search.toLowerCase());
+    const matchCategory =
+      this.selectedFilterCategoryId === null ||
+      p.category?.id === this.selectedFilterCategoryId;
 
-      const matchCategory =
-        this.selectedFilterCategoryId === null ||
-        p.category?.id === this.selectedFilterCategoryId;
+    let matchStock = true;
 
-      let matchStock = true;
+    if (this.stockFilter === 'low') {
+      matchStock = p.stock > 0 && p.stock <= 5;
+    }
 
-      if (this.stockFilter === 'low') {
-        matchStock = p.stock > 0 && p.stock <= 5;
-      }
+    if (this.stockFilter === 'empty') {
+      matchStock = p.stock === 0;
+    }
 
-      if (this.stockFilter === 'empty') {
-        matchStock = p.stock === 0;
-      }
-
-      return matchSearch && matchCategory && matchStock;
-    });
+    return matchCategory && matchStock;
+  });
 
     switch(this.sortBy){
 

@@ -62,6 +62,7 @@
       <input
         class="search"
         [(ngModel)]="search"
+        (ngModelChange)="onSearchChange()"
         placeholder="Buscar producto..."
       />
 

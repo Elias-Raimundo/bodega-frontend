@@ -22,9 +22,12 @@ export class Sales implements OnInit {
   discount = 0;
   categories: any[] = [];
   selectedCategoryId: number | null = null;
-
+  filteredProducts: any[] = [];
+  groupedProductsMap: any = {};
   selectedCustomerId: number | null = null;
   newCustomerName = '';
+
+  searchTimeout: any = null;
 
   payments = [
     {
@@ -55,32 +58,27 @@ export class Sales implements OnInit {
     };
   }
 
-  loadProducts() {
-    this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/products',
-      {
-        headers: this.getHeaders()
-      }
-    ).subscribe({
-      next: (res) => {
-        this.products = res;
+  loadProducts(search: string = '') {
+    const url = search
+      ? `https://bodega-backend-9c4f.onrender.com/products?search=${encodeURIComponent(search)}`
+      : 'https://bodega-backend-9c4f.onrender.com/products';
 
-        this.categories = [
-          ...new Map(
-            res
-              .filter(p => p.category)
-              .map(p => [p.category.id, p.category])
-          ).values()
-        ].sort((a: any, b: any) =>
-          a.name.localeCompare(b.name)
-        );
-
-        this.cd.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching products:', err);
-      }
-    });
+    this.http.get<any[]>(url, { headers: this.getHeaders() })
+      .subscribe({
+        next: (res) => {
+          this.products = res;
+          this.categories = [
+            ...new Map(
+              res
+                .filter(p => p.category)
+                .map(p => [p.category.id, p.category])
+            ).values()
+          ].sort((a: any, b: any) => a.name.localeCompare(b.name));
+          this.updateFilteredProducts();
+          this.cd.detectChanges();
+        },
+        error: (err) => console.error('Error fetching products:', err)
+      });
   }
 
   loadCustomers() {
@@ -100,16 +98,20 @@ export class Sales implements OnInit {
     });
   }
 
-  get filteredProducts() {
-    return this.products
-      .filter(p =>
-        p.name.toLowerCase()
-          .includes(this.search.toLowerCase())
-      )
-      .filter(p =>
-        this.selectedCategoryId === null ||
-        p.category?.id === this.selectedCategoryId
-      );
+  updateFilteredProducts() {
+    this.filteredProducts = this.products.filter(p =>
+      this.selectedCategoryId === null ||
+      p.category?.id === this.selectedCategoryId
+    );
+
+    const groups: any = {};
+    this.filteredProducts.forEach(p => {
+      const category = p.category?.name || 'Sin categoria';
+      if (!groups[category]) groups[category] = [];
+      groups[category].push(p);
+    });
+    this.groupedProductsMap = groups;
+    this.cd.detectChanges();
   }
 
   addProductToCart(product: any) {
@@ -134,6 +136,13 @@ export class Sales implements OnInit {
     }
 
     this.saveCart();
+  }
+
+  onSearchChange() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.loadProducts(this.search);
+    }, 300);
   }
 
   checkout() {
@@ -240,22 +249,6 @@ export class Sales implements OnInit {
 
   trackById(index: number, item: any) {
     return `${item.itemType}-${item.productId || item.preparedProductId}`;
-  }
-
-  groupedProducts() {
-    const groups: any = {};
-
-    this.filteredProducts.forEach(p => {
-      const category = p.category?.name || 'Sin categoria';
-
-      if (!groups[category]) {
-        groups[category] = [];
-      }
-
-      groups[category].push(p);
-    });
-
-    return groups;
   }
 
   remove(item: any) {
