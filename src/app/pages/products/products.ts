@@ -80,7 +80,7 @@ export class Products implements OnInit {
     clearTimeout(this.searchTimeout);
     this.searchTimeout = setTimeout(() => {
       this.load(this.search);
-    }, 300);
+    }, 30000);
   }
 
   loadCategories() {
