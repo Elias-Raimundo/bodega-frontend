@@ -294,6 +294,11 @@ option {
   padding: 8px 0;
 }
 
+.input-error {
+  border-color: var(--rose) !important;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15) !important;
+}
+
 .skeleton-item {
   height: 58px;
   border-radius: var(--radius-md);

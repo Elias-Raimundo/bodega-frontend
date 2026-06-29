@@ -16,6 +16,7 @@ export class Sales implements OnInit {
 
   products: any[] = [];
   customers: any[] = [];
+  checkoutAttempted = false;
 
   cart: any[] = [];
   search = '';
@@ -156,7 +157,15 @@ export class Sales implements OnInit {
   }
 
   checkout() {
+    this.checkoutAttempted = true;
+
     if (this.cart.length === 0) {
+      this.toastr.warning('Agregá al menos un producto');
+      return;
+    }
+
+    if (this.payments.some(p => Number(p.amount) <= 0)) {
+      this.toastr.warning('Todos los pagos deben tener un monto mayor a cero');
       return;
     }
 
@@ -214,6 +223,7 @@ export class Sales implements OnInit {
   }
 
   handleSuccess() {
+    this.checkoutAttempted = false;
     this.toastr.success('Venta realizada');
 
     this.cart = [];
@@ -393,5 +403,9 @@ export class Sales implements OnInit {
 
   clearCartStorage() {
     localStorage.removeItem('sales_cart');
+  }
+
+  toNumber(val: any): number {
+    return Number(val);
   }
 }

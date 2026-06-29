@@ -88,7 +88,7 @@ export class PreparedProducts implements OnInit {
     this.cdRef.detectChanges();
 
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/products',
+      'https://bodega-backend-9c4f.onrender.com/products?limit=9999',
       { headers: { Authorization: `Bearer ${token}` } }
     ).subscribe({
       next: (res) => {
