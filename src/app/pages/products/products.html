@@ -191,6 +191,7 @@
       <input
         [(ngModel)]="name"
         placeholder="Nombre"
+        [class.input-error]="createAttempted && !name.trim()"
       />
       
       <div class ="price-input">
@@ -200,6 +201,7 @@
           type="number"
           min="0"
           placeholder="Precio"
+          [class.input-error]="createAttempted && (price === null || price < 0)"
         />
       </div>
 
@@ -208,6 +210,7 @@
         type="number"
         min="0"
         placeholder="Stock"
+        [class.input-error]="createAttempted && (stock === null || stock < 0)"
       />
 
       <select [(ngModel)]="selectedCategoryId">
@@ -322,13 +325,17 @@
 
       <h3>Editar producto</h3>
 
-      <input [(ngModel)]="editingProduct.name" />
+      <input 
+        [(ngModel)]="editingProduct.name" 
+        [class.input-error]="editAttempted && !editingProduct.name?.trim()"
+      />
       <div class = "price-input">
         <span>$</span>
         <input
           [(ngModel)]="editingProduct.price"
           type="number"
           min="0"
+          [class.input-error]="editAttempted && (editingProduct.price === null || editingProduct.price < 0)"
         />
       </div>
       
@@ -336,6 +343,7 @@
           [(ngModel)]="editingProduct.stock"
           type="number"
           min="0"
+          [class.input-error]="editAttempted && (editingProduct.stock === null || editingProduct.stock < 0)"
         />
       
 

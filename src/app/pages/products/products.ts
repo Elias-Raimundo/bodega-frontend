@@ -18,7 +18,8 @@ export class Products implements OnInit {
   private apiUrl = 'https://bodega-backend-9c4f.onrender.com';
 
   products: any[] = [];
-
+  createAttempted = false;
+  editAttempted = false;
   name = '';
   price: number | null = null;
   stock: number | null = null;
@@ -105,7 +106,19 @@ export class Products implements OnInit {
   }
 
   create() {
-    if ((this.stock ?? 0) < 0){
+    this.createAttempted = true;
+
+    if (!this.name.trim()) {
+      this.toastr.error('El nombre es obligatorio');
+      return;
+    }
+
+    if (this.price === null || this.price < 0) {
+      this.toastr.error('El precio no puede ser negativo');
+      return;
+    }
+
+    if (this.stock === null || this.stock < 0) {
       this.toastr.error('El stock no puede ser negativo');
       return;
     }
@@ -117,12 +130,12 @@ export class Products implements OnInit {
       categoryId: this.selectedCategoryId
     }).subscribe(() => {
       this.toastr.success('Producto creado correctamente');
-
+      this.createAttempted = false;
       this.name = '';
       this.price = null;
       this.stock = null;
       this.selectedCategoryId = null;
-
+      this.showCreateProductModal = false;
       this.load();
     });
   }
@@ -183,7 +196,19 @@ export class Products implements OnInit {
   }
 
   update() {
-    if ((this.editingProduct.stock ?? 0) < 0){
+    this.editAttempted = true;
+
+    if (!this.editingProduct.name?.trim()) {
+      this.toastr.error('El nombre es obligatorio');
+      return;
+    }
+
+    if (this.editingProduct.price === null || this.editingProduct.price < 0) {
+      this.toastr.error('El precio no puede ser negativo');
+      return;
+    }
+
+    if (this.editingProduct.stock === null || this.editingProduct.stock < 0) {
       this.toastr.error('El stock no puede ser negativo');
       return;
     }
@@ -195,9 +220,8 @@ export class Products implements OnInit {
       categoryId: this.editingProduct.categoryId
     }).subscribe(() => {
       this.toastr.info('Producto actualizado');
-
+      this.editAttempted = false;
       this.editingProduct = null;
-
       this.load();
     });
   }
