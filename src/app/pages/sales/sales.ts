@@ -153,7 +153,7 @@ export class Sales implements OnInit {
     clearTimeout(this.searchTimeout);
     this.searchTimeout = setTimeout(() => {
       this.loadProducts(this.search);
-    }, 3000);
+    }, 300);
   }
 
   checkout() {
