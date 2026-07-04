@@ -49,6 +49,7 @@ export class Sales implements OnInit {
     this.loadCart();
     this.loadProducts();
     this.loadCustomers();
+    this.loadCategories();
   }
 
   getToken() {
@@ -73,13 +74,6 @@ export class Sales implements OnInit {
       .subscribe({
         next: (res) => {
           this.products = res;
-          this.categories = [
-            ...new Map(
-              res
-                .filter(p => p.category)
-                .map(p => [p.category.id, p.category])
-            ).values()
-          ].sort((a: any, b: any) => a.name.localeCompare(b.name));
           this.updateFilteredProducts();
           this.loadingProducts = false; 
           this.cd.detectChanges();
@@ -90,6 +84,21 @@ export class Sales implements OnInit {
           this.cd.detectChanges();
         }
       });
+  }
+
+  loadCategories() {
+    this.http.get<any[]>(
+      'https://bodega-backend-9c4f.onrender.com/categories',
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.categories = res.sort((a: any, b: any) =>
+          a.name.localeCompare(b.name)
+        );
+        this.cd.detectChanges();
+      },
+      error: (err) => console.error('Error cargando categorías:', err)
+    });
   }
 
   loadCustomers() {
