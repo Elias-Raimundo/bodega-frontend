@@ -62,25 +62,36 @@ export class Sales implements OnInit {
     };
   }
 
-  loadProducts(search: string = '') {
-    const url = search
-      ? `https://bodega-backend-9c4f.onrender.com/products?search=${encodeURIComponent(search)}`
-      : 'https://bodega-backend-9c4f.onrender.com/products';
+  loadProducts(search: string = '', categoryId: number | null = null) {
+    let url = 'https://bodega-backend-9c4f.onrender.com/products';
+    const params: string[] = [];
+    
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (categoryId) params.push(`categoryId=${categoryId}`);
+    if (params.length) url += '?' + params.join('&');
 
-    this.loadingProducts = true; 
+    this.loadingProducts = true;
     this.cd.detectChanges();
 
     this.http.get<any[]>(url, { headers: this.getHeaders() })
       .subscribe({
         next: (res) => {
           this.products = res;
-          this.updateFilteredProducts();
-          this.loadingProducts = false; 
+          // Filtrar localmente solo para agrupar
+          const groups: any = {};
+          res.forEach(p => {
+            const category = p.category?.name || 'Sin categoria';
+            if (!groups[category]) groups[category] = [];
+            groups[category].push(p);
+          });
+          this.groupedProductsMap = groups;
+          this.filteredProducts = res;
+          this.loadingProducts = false;
           this.cd.detectChanges();
         },
         error: (err) => {
           console.error('Error fetching products:', err);
-          this.loadingProducts = false; 
+          this.loadingProducts = false;
           this.cd.detectChanges();
         }
       });
@@ -119,11 +130,14 @@ export class Sales implements OnInit {
   }
 
   updateFilteredProducts() {
-    this.filteredProducts = this.products.filter(p =>
-      this.selectedCategoryId === null ||
-      p.category?.id === this.selectedCategoryId
-    );
+    // Si hay categoría seleccionada, buscar en el servidor
+    if (this.selectedCategoryId !== null) {
+      this.loadProducts(this.search, this.selectedCategoryId);
+      return;
+    }
 
+    // Sin categoría, filtrar localmente los que ya tenemos
+    this.filteredProducts = this.products;
     const groups: any = {};
     this.filteredProducts.forEach(p => {
       const category = p.category?.name || 'Sin categoria';
