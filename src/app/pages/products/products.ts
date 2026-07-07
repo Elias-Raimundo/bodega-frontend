@@ -68,10 +68,13 @@ export class Products implements OnInit {
       });
   }
 
-  load(search: string = '') {
-    const url = search
-      ? `${this.apiUrl}/products?search=${encodeURIComponent(search)}`
-      : `${this.apiUrl}/products`;
+  load(search: string = '', categoryId: number | null = null) {
+    let url = `${this.apiUrl}/products`;
+    const params: string[] = [];
+
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (categoryId) params.push(`categoryId=${categoryId}`);
+    if (params.length) url += '?' + params.join('&');
 
     this.loadingProducts = true;
     this.cdr.detectChanges();
@@ -93,8 +96,12 @@ export class Products implements OnInit {
   onSearchChange() {
     clearTimeout(this.searchTimeout);
     this.searchTimeout = setTimeout(() => {
-      this.load(this.search);
+      this.load(this.search, this.selectedFilterCategoryId);
     }, 300);
+  }
+
+  onCategoryChange() {
+    this.load(this.search, this.selectedFilterCategoryId);
   }
 
   loadCategories() {
@@ -285,26 +292,22 @@ export class Products implements OnInit {
     });
   }
 
-filteredProducts() {
-  let filtered = this.products.filter(p => {
+  filteredProducts() {
+    let filtered = this.products.filter(p => {
 
-    const matchCategory =
-      this.selectedFilterCategoryId === null ||
-      p.category?.id === this.selectedFilterCategoryId;
+        let matchStock = true;
 
-    let matchStock = true;
+        if (this.stockFilter === 'low') {
+          matchStock = p.stock > 0 && p.stock <= 5;
+        }
 
-    if (this.stockFilter === 'low') {
-      matchStock = p.stock > 0 && p.stock <= 5;
-    }
+        if (this.stockFilter === 'empty') {
+          matchStock = p.stock === 0;
+        }
 
-    if (this.stockFilter === 'empty') {
-      matchStock = p.stock === 0;
-    }
-
-    return matchCategory && matchStock;
-  });
-
+        return matchStock;
+      });
+      
     switch(this.sortBy){
 
       case 'name':
