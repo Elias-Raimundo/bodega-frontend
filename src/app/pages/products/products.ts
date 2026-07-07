@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule} from '@angular/router';
 import { filter } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { ProductsService } from '../../products.service';
 
 @Component({
   selector: 'app-products',
@@ -54,7 +55,8 @@ export class Products implements OnInit {
     private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private productsService: ProductsService
   ) {}
 
   ngOnInit() {
@@ -68,18 +70,11 @@ export class Products implements OnInit {
       });
   }
 
-  load(search: string = '', categoryId: number | null = null) {
-    let url = `${this.apiUrl}/products`;
-    const params: string[] = [];
-
-    if (search) params.push(`search=${encodeURIComponent(search)}`);
-    if (categoryId) params.push(`categoryId=${categoryId}`);
-    if (params.length) url += '?' + params.join('&');
-
+  load(search: string = '', categoryId: number | null = null, forceRefresh = false) {
     this.loadingProducts = true;
     this.cdr.detectChanges();
 
-    this.http.get<any[]>(url).subscribe({
+    this.productsService.getProducts(search, categoryId, forceRefresh).subscribe({
       next: (res) => {
         this.products = res;
         this.loadingProducts = false;
@@ -143,6 +138,7 @@ export class Products implements OnInit {
       this.stock = null;
       this.selectedCategoryId = null;
       this.showCreateProductModal = false;
+      this.productsService.invalidateCache();
       this.load();
     });
   }
@@ -153,6 +149,7 @@ export class Products implements OnInit {
     this.http.delete(`${this.apiUrl}/products/${id}`)
       .subscribe(() => {
         this.toastr.error('Producto eliminado');
+        this.productsService.invalidateCache();
         this.load();
       });
   }
@@ -185,8 +182,10 @@ export class Products implements OnInit {
 
       this.editingCategory = null;
       this.editingCategoryName = '';
+      this.productsService.invalidateCache();
 
       this.loadCategories();
+      this.load();
     });
   }
 
@@ -197,6 +196,7 @@ export class Products implements OnInit {
       .subscribe(() => {
         this.toastr.error('Categoría eliminada');
 
+        this.productsService.invalidateCache();  // ← agregar
         this.loadCategories();
         this.load();
       });
@@ -229,6 +229,7 @@ export class Products implements OnInit {
       this.toastr.info('Producto actualizado');
       this.editAttempted = false;
       this.editingProduct = null;
+      this.productsService.invalidateCache();
       this.load();
     });
   }
@@ -274,7 +275,7 @@ export class Products implements OnInit {
 
         this.selectedImportFile = null;
         this.importing = false;
-
+        this.productsService.invalidateCache();
         this.load();
         this.loadCategories();
         this.cdr.detectChanges();

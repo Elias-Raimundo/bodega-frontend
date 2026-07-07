@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { ProductsService } from '../../products.service';
 
 @Component({
   selector: 'app-sales',
@@ -42,7 +43,8 @@ export class Sales implements OnInit {
   constructor(
     private http: HttpClient,
     private cd: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private productsService: ProductsService
   ) {}
 
   ngOnInit() {
@@ -63,38 +65,30 @@ export class Sales implements OnInit {
   }
 
   loadProducts(search: string = '', categoryId: number | null = null) {
-    let url = 'https://bodega-backend-9c4f.onrender.com/products';
-    const params: string[] = [];
-    
-    if (search) params.push(`search=${encodeURIComponent(search)}`);
-    if (categoryId) params.push(`categoryId=${categoryId}`);
-    if (params.length) url += '?' + params.join('&');
-
     this.loadingProducts = true;
     this.cd.detectChanges();
 
-    this.http.get<any[]>(url, { headers: this.getHeaders() })
-      .subscribe({
-        next: (res) => {
-          this.products = res;
-          // Filtrar localmente solo para agrupar
-          const groups: any = {};
-          res.forEach(p => {
-            const category = p.category?.name || 'Sin categoria';
-            if (!groups[category]) groups[category] = [];
-            groups[category].push(p);
-          });
-          this.groupedProductsMap = groups;
-          this.filteredProducts = res;
-          this.loadingProducts = false;
-          this.cd.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error fetching products:', err);
-          this.loadingProducts = false;
-          this.cd.detectChanges();
-        }
-      });
+    this.productsService.getProducts(search, categoryId).subscribe({
+      next: (res) => {
+        this.products = res;
+        // Filtrar localmente solo para agrupar
+        const groups: any = {};
+        res.forEach(p => {
+          const category = p.category?.name || 'Sin categoria';
+          if (!groups[category]) groups[category] = [];
+          groups[category].push(p);
+        });
+        this.groupedProductsMap = groups;
+        this.filteredProducts = res;
+        this.loadingProducts = false;
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error fetching products:', err);
+        this.loadingProducts = false;
+        this.cd.detectChanges();
+      }
+    });
   }
 
   loadCategories() {
@@ -262,6 +256,7 @@ export class Sales implements OnInit {
     ];
 
     this.clearCartStorage();
+    this.productsService.invalidateCache();
     this.loadProducts();
     this.loadCustomers();
   }
