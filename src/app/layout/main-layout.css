@@ -179,6 +179,116 @@
   width: 100%;
 }
 
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-mid);
+  background: var(--bg-surface);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+.mobile-overlay {
+  display: none;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .topbar {
+    flex-direction: row;
+    height: 64px;
+    padding: 0 16px;
+    align-items: center;
+  }
+
+  .center {
+    display: none;
+  }
+
+  .right {
+    display: none;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 199;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+  }
+
+  .mobile-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 260px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-subtle);
+    padding: 80px 20px 20px;
+    gap: 4px;
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform var(--transition);
+    overflow-y: auto;
+  }
+
+  .mobile-menu.open {
+    transform: translateX(0);
+  }
+
+  .mobile-menu a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .mobile-menu a.active {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--indigo);
+  }
+
+  .mobile-logout {
+    margin-top: 12px;
+    width: 100%;
+  }
+}
+
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .topbar {
@@ -192,28 +302,6 @@
   }
 
   .company span {
-    display: none;
-  }
-}
-
-@media (max-width: 800px) {
-  .topbar {
-    flex-direction: column;
-    height: auto;
-    padding: 14px 16px;
-    gap: 10px;
-    position: relative;
-  }
-
-  .topbar .center {
-    justify-content: flex-start;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-  }
-
-  .topbar .center::-webkit-scrollbar {
     display: none;
   }
 }

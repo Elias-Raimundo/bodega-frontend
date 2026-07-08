@@ -4,9 +4,7 @@
 
     <div class="topbar">
 
-      <!-- LEFT -->
       <div class="left company">
-
         <img
           *ngIf="logo"
           [src]="logo"
@@ -14,22 +12,15 @@
           alt="Logo de la empresa"
           (error)="onLogoError()"
         />
-
-        <div
-          *ngIf="!logo"
-          class="company-avatar"
-        >
+        <div *ngIf="!logo" class="company-avatar">
           {{ companyName ? companyName.charAt(0).toUpperCase() : '?' }}
         </div>
-
         <span>{{ companyName }}</span>
-
       </div>
 
-      <!-- CENTER -->
       <div class="center">
         <a routerLink="/sales" routerLinkActive="active">Ventas</a>
-        <a routerLink="/tables" routerLinkActive="active"> Mesas</a>
+        <a routerLink="/tables" routerLinkActive="active">Mesas</a>
         <a routerLink="/products" routerLinkActive="active">Productos</a>
         <a routerLink="/prepared-products" routerLinkActive="active">Tragos</a>
         <a routerLink="/dashboard" routerLinkActive="active">Inicio</a>
@@ -39,16 +30,34 @@
         <a routerLink="/settings" routerLinkActive="active">Ajustes</a>
       </div>
 
-      <!-- RIGHT -->
       <div class="right">
-
         <button class="logout-btn" (click)="logout()">
           Salir
         </button>
-
       </div>
 
+      <button class="menu-toggle" (click)="toggleMenu()" [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
     </div>
+
+    <div class="mobile-overlay" [class.open]="menuOpen" (click)="closeMenu()"></div>
+
+    <nav class="mobile-menu" [class.open]="menuOpen">
+      <a routerLink="/sales" routerLinkActive="active" (click)="closeMenu()">Ventas</a>
+      <a routerLink="/tables" routerLinkActive="active" (click)="closeMenu()">Mesas</a>
+      <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">Productos</a>
+      <a routerLink="/prepared-products" routerLinkActive="active" (click)="closeMenu()">Tragos</a>
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">Inicio</a>
+      <a routerLink="/reports" routerLinkActive="active" (click)="closeMenu()">Reportes</a>
+      <a routerLink="/customers" routerLinkActive="active" (click)="closeMenu()">Cuenta Corriente</a>
+      <a routerLink="/suppliers" routerLinkActive="active" (click)="closeMenu()">Proveedores</a>
+      <a routerLink="/settings" routerLinkActive="active" (click)="closeMenu()">Ajustes</a>
+      <button class="logout-btn mobile-logout" (click)="logout()">Salir</button>
+    </nav>
 
     <div class="page">
       <router-outlet></router-outlet>
