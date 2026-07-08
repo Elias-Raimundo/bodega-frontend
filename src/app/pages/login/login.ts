@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CompanyService } from '../../services/company.service';
 import { ToastrService } from 'ngx-toastr';
+import { ProductsService } from '../../products.service';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +21,13 @@ export class Login {
 
   loading = false;
 
-  constructor(private http: HttpClient, private router: Router, private companyService: CompanyService, private toastr: ToastrService) {}
+  constructor(
+    private http: HttpClient, 
+    private router: Router, 
+    private companyService: CompanyService, 
+    private toastr: ToastrService,
+    private productsService: ProductsService
+  ) {}
 
   login() {
     this.loading = true;
@@ -35,6 +42,8 @@ export class Login {
           return;
         }
         localStorage.setItem('token', res.token);
+        this.productsService.invalidateCache();
+        
         this.http.get('https://bodega-backend-9c4f.onrender.com/companies/me')
           .subscribe({
 
