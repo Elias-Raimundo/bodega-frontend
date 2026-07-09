@@ -345,6 +345,7 @@
         <input
           [(ngModel)]="editingProduct.stock"
           type="number"
+          step="1"
           min="0"
           [class.input-error]="editAttempted && (editingProduct.stock === null || editingProduct.stock < 0)"
         />
