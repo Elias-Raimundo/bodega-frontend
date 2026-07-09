@@ -157,6 +157,7 @@ export class Products implements OnInit {
   openEdit(p: any) {
     this.editingProduct = {
       ...p,
+      stock: Math.floor(p.stock),
       categoryId: p.category?.id
         ? Number(p.category.id)
         : p.categoryId
