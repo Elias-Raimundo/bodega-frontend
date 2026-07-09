@@ -3,6 +3,8 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { ProductsService } from '../../products.service';
+import { PreparedProductsService } from '../../prepared-products.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,7 +26,12 @@ export class Dashboard implements OnInit {
   loadingStats = false;
   loadingSales = false;
 
-  constructor(private router: Router, private http: HttpClient, private cdRef: ChangeDetectorRef) {}
+  constructor(private router: Router, 
+    private http: HttpClient, 
+    private cdRef: ChangeDetectorRef,
+    private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService
+  ) {}
 
   ngOnInit(){
       this.loadStats();
@@ -151,6 +158,8 @@ export class Dashboard implements OnInit {
 
   logout() {
     localStorage.removeItem('token');
+    this.productsService.invalidateCache();
+    this.preparedProductsService.invalidateCache();
     this.router.navigate(['/login']);
   }
 }

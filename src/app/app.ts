@@ -3,6 +3,7 @@ import { RouterOutlet, Router } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { CompanyService } from './services/company.service';
 import { ProductsService } from './products.service';
+import { PreparedProductsService } from './prepared-products.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class App {
     private router: Router,
     private companyService: CompanyService,
     private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService,
     @Inject(DOCUMENT) private document: Document
   ) {
     this.companyService.rehydrate();
@@ -42,6 +44,7 @@ export class App {
   logout() {
     localStorage.removeItem('token');
     this.productsService.invalidateCache();
+    this.preparedProductsService.invalidateCache();
     this.router.navigate(['/login']);
   }
 

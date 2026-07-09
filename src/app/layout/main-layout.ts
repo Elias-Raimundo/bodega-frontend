@@ -5,6 +5,7 @@ import { CompanyService } from '../services/company.service';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { ProductsService } from '../products.service';
+import { PreparedProductsService } from '../prepared-products.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -23,7 +24,8 @@ export class MainLayout implements OnInit {
     private router: Router, 
     private companyService: CompanyService,
     private cdRef: ChangeDetectorRef,
-    private productsService: ProductsService
+    private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService
   ) {}
 
   ngOnInit() {
@@ -57,7 +59,8 @@ export class MainLayout implements OnInit {
 
   logout() {
     localStorage.removeItem('token');
-    this.productsService.invalidateCache();   // ← agregar
+    this.productsService.invalidateCache(); 
+    this.preparedProductsService.invalidateCache();
     this.router.navigate(['/login']);
   }
 
