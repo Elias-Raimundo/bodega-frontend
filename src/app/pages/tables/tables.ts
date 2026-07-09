@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PreparedProductsService } from '../../prepared-products.service';
+import { ProductsService } from '../../products.service';
 
 @Component({
   selector: 'app-tables',
@@ -36,7 +38,9 @@ export class Tables implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService
   ) {}
 
   ngOnInit() {
@@ -67,11 +71,7 @@ export class Tables implements OnInit {
   }
 
   loadProducts() {
-    const token = this.getToken();
-
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/products', {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
+    this.productsService.getProducts().subscribe({
       next: (res) => {
         this.products = res;
         this.cdRef.detectChanges();
@@ -83,11 +83,7 @@ export class Tables implements OnInit {
   }
 
   loadPreparedProducts() {
-    const token = this.getToken();
-
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/prepared-products', {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
+    this.preparedProductsService.getPreparedProducts().subscribe({
       next: (res) => {
         this.preparedProducts = res;
         this.cdRef.detectChanges();
@@ -424,7 +420,7 @@ export class Tables implements OnInit {
             amount: 0
           }
         ];
-
+        this.productsService.invalidateCache();
         this.loadTables();
         this.loadProducts();
         this.loadPreparedProducts();

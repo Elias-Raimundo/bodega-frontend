@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
+import { PreparedProductsService } from '../../prepared-products.service';
+import { ProductsService } from '../../products.service';
 
 @Component({
   selector: 'app-prepared-products',
@@ -37,7 +39,9 @@ export class PreparedProducts implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private preparedProductsService: PreparedProductsService,
+    private productsService: ProductsService
   ) {}
 
   ngOnInit() {
@@ -60,15 +64,11 @@ export class PreparedProducts implements OnInit {
     };
   }
 
-  loadPreparedProducts() {
-    const token = this.getToken();
+  loadPreparedProducts(forceRefresh = false) {
     this.loadingPrepared = true;
     this.cdRef.detectChanges();
 
-    this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/prepared-products',
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).subscribe({
+    this.preparedProductsService.getPreparedProducts(forceRefresh).subscribe({
       next: (res) => {
         this.preparedProducts = res;
         this.loadingPrepared = false;
@@ -83,14 +83,10 @@ export class PreparedProducts implements OnInit {
   }
 
   loadProducts() {
-    const token = this.getToken();
     this.loadingProducts = true;
     this.cdRef.detectChanges();
 
-    this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/products?limit=9999',
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).subscribe({
+    this.productsService.getProducts().subscribe({
       next: (res) => {
         this.products = res;
         this.loadingProducts = false;
@@ -160,6 +156,7 @@ export class PreparedProducts implements OnInit {
       }
     ).subscribe(() => {
       this.resetForm();
+      this.preparedProductsService.invalidateCache();
       this.loadPreparedProducts();
       this.cdRef.detectChanges();
     });
@@ -202,6 +199,7 @@ export class PreparedProducts implements OnInit {
       }
     ).subscribe(() => {
       this.resetForm();
+      this.preparedProductsService.invalidateCache();
       this.loadPreparedProducts();
       this.cdRef.detectChanges();
     });
@@ -244,7 +242,7 @@ export class PreparedProducts implements OnInit {
       if (this.editingId === id) {
         this.resetForm();
       }
-
+      this.preparedProductsService.invalidateCache();
       this.loadPreparedProducts();
       this.cdRef.detectChanges();
     });
