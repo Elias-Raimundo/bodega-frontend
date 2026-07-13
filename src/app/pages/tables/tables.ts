@@ -28,6 +28,9 @@ export class Tables implements OnInit {
   discount = 0;
   customers: any[] = [];
   selectedCustomerId: number | null = null;
+  partialPaymentAmount: number | null = null;
+  partialPaymentMethod = 'CASH';
+  partialPaymentCustomerId: number | null = null;
 
   payments = [
     {
@@ -305,6 +308,67 @@ export class Tables implements OnInit {
     });
   }
 
+  getAlreadyPaid() {
+    if (!this.selectedOrder?.partialPayments) return 0;
+    return this.selectedOrder.partialPayments.reduce(
+      (acc: number, p: any) => acc + Number(p.amount),
+      0
+    );
+  }
+
+  getRemainingBalance() {
+    return Math.max(
+      this.getTotalWithDiscount() - this.getAlreadyPaid(),
+      0
+    );
+  }
+
+  registerPartialPayment() {
+    if (!this.selectedTable) return;
+
+    if (!this.partialPaymentAmount || this.partialPaymentAmount <= 0) {
+      alert('Ingrese un monto válido');
+      return;
+    }
+
+    if (this.partialPaymentAmount > this.getRemainingBalance() + 0.01) {
+      alert('El monto supera el saldo pendiente');
+      return;
+    }
+
+    if (this.partialPaymentMethod === 'CURRENT_ACCOUNT' && !this.partialPaymentCustomerId) {
+      alert('Seleccioná un cliente para cuenta corriente');
+      return;
+    }
+
+    const token = this.getToken();
+
+    this.http.post<any>(
+      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/partial-payment`,
+      {
+        amount: this.partialPaymentAmount,
+        method: this.partialPaymentMethod,
+        customerId: this.partialPaymentMethod === 'CURRENT_ACCOUNT'
+          ? this.partialPaymentCustomerId
+          : null
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    ).subscribe({
+      next: (res) => {
+        this.selectedOrder = res;
+        this.partialPaymentAmount = null;
+        this.partialPaymentMethod = 'CASH';
+        this.partialPaymentCustomerId = null;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Error registrando el pago parcial');
+      }
+    });
+  }
+
   deleteTable(tableId: number, event: Event) {
     event.stopPropagation();
 
@@ -381,7 +445,7 @@ export class Tables implements OnInit {
 
   paymentsMatch() {
     return Math.abs(
-      this.getPaymentsTotal() - this.getTotalWithDiscount()
+      this.getPaymentsTotal() - this.getRemainingBalance()
     ) <= 0.01;
   }
 
@@ -413,7 +477,9 @@ export class Tables implements OnInit {
         this.search = '';
         this.discount = 0;
         this.selectedCustomerId = null;
-
+        this.partialPaymentAmount = null;       
+        this.partialPaymentMethod = 'CASH';       
+        this.partialPaymentCustomerId = null;
         this.payments = [
           {
             method: 'CASH',
@@ -456,6 +522,9 @@ export class Tables implements OnInit {
     this.search = '';
     this.discount = 0;
     this.selectedCustomerId = null;
+    this.partialPaymentAmount = null;        // ← agregar
+    this.partialPaymentMethod = 'CASH';       // ← agregar
+    this.partialPaymentCustomerId = null;     // ← agregar
 
     this.payments = [
       {

@@ -245,8 +245,60 @@
           </div>
 
           <div class="order-total">
-            Total:
-            ${{ getTotalWithDiscount() | number:'1.0-0'}}
+            Total: ${{ getTotalWithDiscount() | number:'1.0-0'}}
+            <span class="remaining-label" *ngIf="getAlreadyPaid() > 0">
+              (Saldo a cerrar: ${{ getRemainingBalance() | number:'1.0-0' }})
+            </span>
+          </div>
+
+          <!-- PAGO PARCIAL -->
+          <div class="partial-payment-box" *ngIf="getAlreadyPaid() > 0 || selectedOrder.items?.length > 0">
+
+            <h3>Pago parcial</h3>
+
+            <div class="partial-payment-summary" *ngIf="getAlreadyPaid() > 0">
+              <span>Ya pagado</span>
+              <strong>${{ getAlreadyPaid() | number:'1.0-0' }}</strong>
+            </div>
+
+            <div class="partial-payment-summary highlight">
+              <span>Saldo pendiente</span>
+              <strong>${{ getRemainingBalance() | number:'1.0-0' }}</strong>
+            </div>
+
+            <div class="partial-payment-row">
+
+              <select [(ngModel)]="partialPaymentMethod">
+                <option value="CASH">Efectivo</option>
+                <option value="TRANSFER">Transferencia</option>
+                <option value="DEBIT">Débito</option>
+                <option value="CREDIT">Crédito</option>
+                <option value="CURRENT_ACCOUNT">Cuenta Corriente</option>
+              </select>
+
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="partialPaymentAmount"
+                placeholder="Monto a pagar"
+              />
+
+              <button (click)="registerPartialPayment()">
+                Registrar
+              </button>
+
+            </div>
+
+            <div *ngIf="partialPaymentMethod === 'CURRENT_ACCOUNT'" class="current-account-box">
+              <label>Cliente</label>
+              <select [(ngModel)]="partialPaymentCustomerId">
+                <option [ngValue]="null">Seleccionar cliente...</option>
+                <option *ngFor="let c of customers" [ngValue]="c.id">
+                  {{ c.name }}
+                </option>
+              </select>
+            </div>
+
           </div>
 
           <!-- PAGOS -->
