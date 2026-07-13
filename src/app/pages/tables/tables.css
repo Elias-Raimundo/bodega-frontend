@@ -385,11 +385,52 @@
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
-.remaining-label {
+.total-breakdown {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 13px;
-  font-weight: 500;
   color: var(--text-secondary, #94a3b8);
-  margin-left: 8px;
+}
+
+.total-line strong {
+  font-size: 14px;
+  color: var(--text-primary, #f1f5f9);
+  font-weight: 600;
+}
+
+.total-line strong.paid {
+  color: var(--emerald, #10b981);
+}
+
+.due-now {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle, rgba(99, 102, 241, 0.12));
+}
+
+.due-now span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.due-now strong {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--emerald, #10b981);
+  letter-spacing: -0.5px;
 }
 
 /* ── MODAL GRID ── */

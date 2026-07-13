@@ -244,27 +244,26 @@
             <strong>${{ discount || 0 | number:'1.0-0' }}</strong>
           </div>
 
-          <div class="order-total">
-            Total: ${{ getTotalWithDiscount() | number:'1.0-0'}}
-            <span class="remaining-label" *ngIf="getAlreadyPaid() > 0">
-              (Saldo a cerrar: ${{ getRemainingBalance() | number:'1.0-0' }})
-            </span>
+          <div class="total-breakdown">
+            <div class="total-line" *ngIf="getAlreadyPaid() > 0">
+              <span>Total del pedido</span>
+              <strong>${{ getTotalWithDiscount() | number:'1.0-0' }}</strong>
+            </div>
+            <div class="total-line" *ngIf="getAlreadyPaid() > 0">
+              <span>Ya pagado</span>
+              <strong class="paid">${{ getAlreadyPaid() | number:'1.0-0' }}</strong>
+            </div>
+
+            <div class="due-now">
+              <span>{{ getAlreadyPaid() > 0 ? 'Falta pagar' : 'Total' }}</span>
+              <strong>${{ getRemainingBalance() | number:'1.0-0' }}</strong>
+            </div>
           </div>
 
           <!-- PAGO PARCIAL -->
-          <div class="partial-payment-box" *ngIf="getAlreadyPaid() > 0 || selectedOrder.items?.length > 0">
+          <div class="partial-payment-box" *ngIf="selectedOrder.items?.length > 0 && getRemainingBalance() > 0">
 
-            <h3>Pago parcial</h3>
-
-            <div class="partial-payment-summary" *ngIf="getAlreadyPaid() > 0">
-              <span>Ya pagado</span>
-              <strong>${{ getAlreadyPaid() | number:'1.0-0' }}</strong>
-            </div>
-
-            <div class="partial-payment-summary highlight">
-              <span>Saldo pendiente</span>
-              <strong>${{ getRemainingBalance() | number:'1.0-0' }}</strong>
-            </div>
+            <h3>Registrar pago parcial</h3>
 
             <div class="partial-payment-row">
 
