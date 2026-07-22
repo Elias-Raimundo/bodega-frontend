@@ -618,13 +618,4 @@ export class Tables implements OnInit {
     );
   }
 
-  getIngredientText(prepared: any) {
-    if (!prepared.ingredients || prepared.ingredients.length === 0) {
-      return 'Sin ingredientes';
-    }
-
-    return prepared.ingredients
-      .map((i: any) => `${i.product?.name} x ${i.quantity}`)
-      .join(' + ');
-  }
 }
