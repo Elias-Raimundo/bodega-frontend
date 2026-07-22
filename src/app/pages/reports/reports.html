@@ -197,7 +197,13 @@
         </div>
 
         <input type="number" min="0" [(ngModel)]="openingAmount" placeholder="Monto inicial" />
-        <button (click)="openDailyCash()">Abrir caja</button>
+
+        <button
+          (click)="openDailyCash()"
+          [disabled]="openingDailyCash"
+        >
+          {{ openingDailyCash ? 'Abriendo...' : 'Abrir caja' }}
+        </button>
 
       </div>
 
@@ -228,7 +234,12 @@
           <div class="expense-form">
             <input type="text" [(ngModel)]="expenseDescription" placeholder="Descripción" />
             <input type="number" min="0" [(ngModel)]="expenseAmount" placeholder="Monto" />
-            <button (click)="addDailyExpense()">Agregar</button>
+            <button
+              (click)="addDailyExpense()"
+              [disabled]="addingExpense"
+            >
+              {{ addingExpense ? 'Agregando...' : 'Agregar' }}
+            </button>
           </div>
         </div>
 
@@ -239,7 +250,13 @@
               <span>{{ expense.createdAt | date:'dd/MM HH:mm' }}</span>
             </div>
             <b>-${{ expense.amount | number:'1.0-0' }}</b>
-            <button class="delete-expense-btn" (click)="deleteDailyExpense(expense.id)">✕</button>
+            <button
+              class="delete-expense-btn"
+              (click)="deleteDailyExpense(expense.id)"
+              [disabled]="deletingExpenseId === expense.id"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
@@ -260,7 +277,12 @@
             </div>
           </div>
           <input type="number" min="0" [(ngModel)]="closingAmount" placeholder="Monto que queda para mañana" />
-          <button (click)="closeDailyCash()">Cerrar caja diaria</button>
+          <button
+            (click)="closeDailyCash()"
+            [disabled]="closingDailyCash"
+          >
+            {{ closingDailyCash ? 'Cerrando...' : 'Cerrar caja diaria' }}
+          </button>
         </div>
 
       </div>
@@ -316,8 +338,12 @@
             <strong>{{ report.productsSold }}</strong>
           </div>
         </div>
-        <button class="close-cash-btn" [disabled]="report.salesCount === 0" (click)="closeCash()">
-          Guardar cierre del período
+        <button
+          class="close-cash-btn"
+          [disabled]="report.salesCount === 0 || closingCash"
+          (click)="closeCash()"
+        >
+          {{ closingCash ? 'Cerrando...' : 'Guardar cierre del período' }}
         </button>
       </div>
 

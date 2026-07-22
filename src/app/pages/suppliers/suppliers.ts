@@ -1,7 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-suppliers',
@@ -38,9 +42,18 @@ export class Suppliers implements OnInit {
 
   paymentAmount: {[invoiceId: number]: number | null} = {};
 
+  // NUEVO: flags de carga para evitar doble submit
+  creatingSupplier = false;
+  updatingSupplier = false;
+  deletingSupplierId: number | null = null;
+  creatingInvoice = false;
+  deletingInvoiceId: number | null = null;
+  registeringPaymentInvoiceId: number | null = null;
+
   constructor(
     private http: HttpClient,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
@@ -57,12 +70,29 @@ export class Suppliers implements OnInit {
     };
   }
 
+  // Mismo helper que en el resto de los componentes
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
   loadSuppliers() {
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/suppliers',
-      {
-        headers: this.getHeaders()
-      }
+      `${API_URL}/suppliers`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.suppliers = res;
@@ -70,6 +100,7 @@ export class Suppliers implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los proveedores'));
       }
     });
   }
@@ -84,31 +115,36 @@ export class Suppliers implements OnInit {
   createSupplier() {
 
     if (!this.newSupplierName.trim()) {
-      alert('Ingrese un nombre');
+      this.toastr.error('Ingrese un nombre');
       return;
     }
 
+    if (this.creatingSupplier) return;
+    this.creatingSupplier = true;
+
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/suppliers',
+      `${API_URL}/suppliers`,
       {
         name: this.newSupplierName,
         description: this.newSupplierDescription
       },
-      {
-        headers: this.getHeaders()
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.creatingSupplier = false;
+        this.toastr.success('Proveedor creado');
 
         this.newSupplierName = '';
         this.newSupplierDescription = '';
         this.showCreateModal = false;
 
         this.loadSuppliers();
-        
       },
       error: (err) => {
         console.error(err);
+        this.creatingSupplier = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo crear el proveedor'));
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -131,10 +167,8 @@ export class Suppliers implements OnInit {
   loadInvoices(supplierId: number) {
 
     this.http.get<any[]>(
-      `https://bodega-backend-9c4f.onrender.com/suppliers/${supplierId}/invoices`,
-      {
-        headers: this.getHeaders()
-      }
+      `${API_URL}/suppliers/${supplierId}/invoices`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.invoices = res;
@@ -142,6 +176,7 @@ export class Suppliers implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar las facturas'));
       }
     });
   }
@@ -151,24 +186,30 @@ export class Suppliers implements OnInit {
     if (!this.selectedSupplier) return;
 
     if (!this.invoiceForm.totalAmount || this.invoiceForm.totalAmount <= 0) {
-      alert('Monto inválido');
+      this.toastr.warning('Monto inválido');
       return;
     }
 
+    if (this.creatingInvoice) return;
+    this.creatingInvoice = true;
+
     this.http.post<any>(
-      `https://bodega-backend-9c4f.onrender.com/suppliers/${this.selectedSupplier.id}/invoices`,
+      `${API_URL}/suppliers/${this.selectedSupplier.id}/invoices`,
       this.invoiceForm,
-      {
-        headers: this.getHeaders()
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.creatingInvoice = false;
+        this.toastr.success('Factura cargada');
 
         this.resetInvoiceForm();
         this.loadInvoices(this.selectedSupplier.id);
       },
       error: (err) => {
         console.error(err);
+        this.creatingInvoice = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar la factura'));
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -176,30 +217,30 @@ export class Suppliers implements OnInit {
   registerPayment(invoice: any) {
     const amount = this.paymentAmount[invoice.id];
     if (!amount || amount <= 0) {
-      alert('Ingrese un importe');
+      this.toastr.warning('Ingrese un importe');
       return;
     }
 
+    if (this.registeringPaymentInvoiceId === invoice.id) return;
+    this.registeringPaymentInvoiceId = invoice.id;
+
     this.http.post<any>(
-      `https://bodega-backend-9c4f.onrender.com/suppliers/invoices/${invoice.id}/payment`,
-      {
-        paidAmount: amount
-      },
-      {
-        headers: this.getHeaders()
-      }
+      `${API_URL}/suppliers/invoices/${invoice.id}/payment`,
+      { paidAmount: amount },
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.registeringPaymentInvoiceId = null;
+        this.toastr.success('Pago registrado');
 
         this.paymentAmount[invoice.id] = null;
 
         this.loadInvoices(this.selectedSupplier.id);
       },
       error: (err) => {
-        alert(
-          err.error?.message ||
-          'Error registrando pago'
-        );
+        this.registeringPaymentInvoiceId = null;
+        this.toastr.error(this.getErrorMessage(err, 'Error registrando pago'));
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -210,18 +251,24 @@ export class Suppliers implements OnInit {
       return;
     }
 
+    if (this.deletingInvoiceId === invoiceId) return;
+    this.deletingInvoiceId = invoiceId;
+
     this.http.delete(
-      `https://bodega-backend-9c4f.onrender.com/suppliers/invoices/${invoiceId}`,
-      {
-        headers: this.getHeaders()
-      }
+      `${API_URL}/suppliers/invoices/${invoiceId}`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.deletingInvoiceId = null;
+        this.toastr.success('Factura eliminada');
         this.loadInvoices(this.selectedSupplier.id);
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error(err);
+        this.deletingInvoiceId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar la factura'));
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -266,32 +313,38 @@ export class Suppliers implements OnInit {
     if (!this.editingSupplier) return;
 
     if (!this.editSupplierName.trim()) {
-        alert('El nombre es obligatorio');
-        return;
+      this.toastr.error('El nombre es obligatorio');
+      return;
     }
 
+    if (this.updatingSupplier) return;
+    this.updatingSupplier = true;
+
     this.http.put<any>(
-        `https://bodega-backend-9c4f.onrender.com/suppliers/${this.editingSupplier.id}`,
-        {
+      `${API_URL}/suppliers/${this.editingSupplier.id}`,
+      {
         name: this.editSupplierName,
         description: this.editSupplierDescription
-        },
-        {
-        headers: this.getHeaders()
-        }
+      },
+      { headers: this.getHeaders() }
     ).subscribe({
-        next: (updated) => {
-          if (this.selectedSupplier && this.selectedSupplier.id === updated.id) {
-            this.selectedSupplier = updated;
-          }
+      next: (updated) => {
+        this.updatingSupplier = false;
+        this.toastr.info('Proveedor actualizado');
 
-          this.cancelEditSupplier();
-          this.loadSuppliers();
-          this.cdRef.detectChanges();
-        },
-        error: (err) => {
-        alert(err.error?.message || 'Error editando proveedor');
+        if (this.selectedSupplier && this.selectedSupplier.id === updated.id) {
+          this.selectedSupplier = updated;
         }
+
+        this.cancelEditSupplier();
+        this.loadSuppliers();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        this.updatingSupplier = false;
+        this.toastr.error(this.getErrorMessage(err, 'Error editando proveedor'));
+        this.cdRef.detectChanges();
+      }
     });
   }
 
@@ -299,22 +352,27 @@ export class Suppliers implements OnInit {
     event.stopPropagation();
 
     if (!confirm(`¿Eliminar proveedor ${supplier.name}?`)) {
-        return;
+      return;
     }
 
+    if (this.deletingSupplierId === supplier.id) return;
+    this.deletingSupplierId = supplier.id;
+
     this.http.delete(
-        `https://bodega-backend-9c4f.onrender.com/suppliers/${supplier.id}`,
-        {
-        headers: this.getHeaders()
-        }
+      `${API_URL}/suppliers/${supplier.id}`,
+      { headers: this.getHeaders() }
     ).subscribe({
-        next: () => {
+      next: () => {
+        this.deletingSupplierId = null;
+        this.toastr.success('Proveedor eliminado');
         this.loadSuppliers();
         this.cdRef.detectChanges();
-        },
-        error: (err) => {
-        alert(err.error?.message || 'Error eliminando proveedor');
-        }
+      },
+      error: (err) => {
+        this.deletingSupplierId = null;
+        this.toastr.error(this.getErrorMessage(err, 'Error eliminando proveedor'));
+        this.cdRef.detectChanges();
+      }
     });
   }
 }

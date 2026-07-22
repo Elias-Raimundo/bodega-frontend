@@ -54,6 +54,7 @@
         <button
           class="delete-btn"
           (click)="deleteSupplier(supplier, $event)"
+          [disabled]="deletingSupplierId === supplier.id"
         >
           ✕ Eliminar
         </button>
@@ -89,8 +90,9 @@
         <button
           class="primary"
           (click)="createSupplier()"
+          [disabled]="creatingSupplier"
         >
-          Crear
+          {{ creatingSupplier ? 'Creando...' : 'Crear' }}
         </button>
 
         <button
@@ -129,10 +131,11 @@
         <div class="modal-actions">
 
         <button
-            class="primary"
-            (click)="updateSupplier()"
+          class="primary"
+          (click)="updateSupplier()"
+          [disabled]="updatingSupplier"
         >
-            Guardar
+          {{ updatingSupplier ? 'Guardando...' : 'Guardar' }}
         </button>
 
         <button
@@ -214,8 +217,9 @@
         <button
           class="primary"
           (click)="createInvoice()"
+          [disabled]="creatingInvoice"
         >
-          Guardar factura
+          {{ creatingInvoice ? 'Guardando...' : 'Guardar factura' }}
         </button>
 
       </div>
@@ -284,15 +288,17 @@
           <button
             class="payment-btn"
             (click)="registerPayment(invoice)"
+            [disabled]="registeringPaymentInvoiceId === invoice.id"
           >
-            Registrar pago
+            {{ registeringPaymentInvoiceId === invoice.id ? 'Registrando...' : 'Registrar pago' }}
           </button>
 
           <button
             class="delete-btn"
             (click)="deleteInvoice(invoice.id)"
+            [disabled]="deletingInvoiceId === invoice.id"
           >
-            Eliminar
+            {{ deletingInvoiceId === invoice.id ? 'Eliminando...' : 'Eliminar' }}
           </button>
 
         </div>

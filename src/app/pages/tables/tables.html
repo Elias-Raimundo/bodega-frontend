@@ -11,8 +11,11 @@
         [(ngModel)]="tableCount"
       />
 
-      <button (click)="initTables()">
-        Crear mesas
+      <button
+        (click)="initTables()"
+        [disabled]="creatingTables"
+      >
+        {{ creatingTables ? 'Creando...' : 'Crear mesas' }}
       </button>
 
     </div>
@@ -30,6 +33,7 @@
       <button
         class="delete-table"
         (click)="deleteTable(table.id, $event)"
+        [disabled]="deletingTableId === table.id"
       >
         ✕
       </button>
@@ -282,8 +286,11 @@
                 placeholder="Monto a pagar"
               />
 
-              <button (click)="registerPartialPayment()">
-                Registrar
+              <button
+                (click)="registerPartialPayment()"
+                [disabled]="registeringPartialPayment"
+              >
+                {{ registeringPartialPayment ? 'Registrando...' : 'Registrar' }}
               </button>
 
             </div>
@@ -380,11 +387,12 @@
             class="close-table-btn"
             [disabled]="
               selectedOrder.items?.length === 0 ||
-              !paymentsMatch()
+              !paymentsMatch() ||
+              closingTable
             "
             (click)="closeTable()"
           >
-            Cerrar mesa
+            {{ closingTable ? 'Cerrando...' : 'Cerrar mesa' }}
           </button>
 
         </div>

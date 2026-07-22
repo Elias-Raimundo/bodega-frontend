@@ -1,10 +1,14 @@
-import { Component, getPlatform, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 import { ProductsService } from '../../products.service';
 import { PreparedProductsService } from '../../prepared-products.service';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-dashboard',
@@ -29,6 +33,7 @@ export class Dashboard implements OnInit {
   constructor(private router: Router, 
     private http: HttpClient, 
     private cdRef: ChangeDetectorRef,
+    private toastr: ToastrService,
     private productsService: ProductsService,
     private preparedProductsService: PreparedProductsService
   ) {}
@@ -39,15 +44,37 @@ export class Dashboard implements OnInit {
       this.loadPaymentStats();
       this.loadProducts();
   }
-      
+
+  getHeaders() {
+    const token = localStorage.getItem('token');
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  // Mismo helper que en el resto de los componentes
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
 
   loadStats() {
-    const token = localStorage.getItem('token');
     this.loadingStats = true;
     this.cdRef.detectChanges();
 
-    this.http.get('https://bodega-backend-9c4f.onrender.com/products/stats', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    this.http.get(`${API_URL}/products/stats`, {
+      headers: this.getHeaders()
     }).subscribe({
       next: (res: any) => {
         this.stats = { ...res };
@@ -56,6 +83,7 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('Error stats:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar el resumen del negocio'));
         this.loadingStats = false;
         this.cdRef.detectChanges();
       }
@@ -63,12 +91,11 @@ export class Dashboard implements OnInit {
   }
 
   loadSales() {
-    const token = localStorage.getItem('token');
     this.loadingSales = true;
     this.cdRef.detectChanges();
 
-    this.http.get('https://bodega-backend-9c4f.onrender.com/sales', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    this.http.get(`${API_URL}/sales`, {
+      headers: this.getHeaders()
     }).subscribe({
       next: (res: any) => {
         this.sales = res;
@@ -77,6 +104,7 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('Error sales:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar las últimas ventas'));
         this.loadingSales = false;
         this.cdRef.detectChanges();
       }
@@ -84,26 +112,17 @@ export class Dashboard implements OnInit {
   }
 
   loadPaymentStats() {
-
-    const token = localStorage.getItem('token');
-
     this.http.get(
-      'https://bodega-backend-9c4f.onrender.com/sales/payment-stats',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
+      `${API_URL}/sales/payment-stats`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res: any) => {
-
         this.paymentStats = res;
-
         this.cdRef.detectChanges();
       },
-
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los métodos de pago'));
       }
     });
   }
@@ -135,16 +154,9 @@ export class Dashboard implements OnInit {
   }
 
   loadProducts() {
-
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/products',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
+      `${API_URL}/products`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.products = res;
@@ -152,6 +164,7 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('Error loading products:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
       }
     });
   }

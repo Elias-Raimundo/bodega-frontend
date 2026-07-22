@@ -49,6 +49,7 @@
         <button
           class="delete-btn"
           (click)="deleteCustomer(customer, $event)"
+          [disabled]="deletingCustomerId === customer.id"
         >
           ✕ Eliminar
         </button>
@@ -70,7 +71,13 @@
       />
 
       <div class="modal-actions">
-        <button class="primary" (click)="createCustomer()">Crear</button>
+        <button
+          class="primary"
+          (click)="createCustomer()"
+          [disabled]="creatingCustomer"
+        >
+          {{ creatingCustomer ? 'Creando...' : 'Crear' }}
+        </button>
         <button class="cancel" (click)="showCreateModal = false">Cancelar</button>
       </div>
 
@@ -90,7 +97,13 @@
       />
 
       <div class="modal-actions">
-        <button class="primary" (click)="updateCustomer()">Guardar</button>
+        <button
+          class="primary"
+          (click)="updateCustomer()"
+          [disabled]="updatingCustomer"
+        >
+          {{ updatingCustomer ? 'Guardando...' : 'Guardar' }}
+        </button>
         <button class="cancel" (click)="showEditModal = false; selectedCustomer = null">Cancelar</button>
       </div>
 
@@ -129,8 +142,20 @@
         />
 
         <div class="movement-actions">
-          <button class="debt-btn" (click)="addDebt()">+ Agregar deuda</button>
-          <button class="payment-btn" (click)="addPayment()">Registrar pago</button>
+          <button
+            class="debt-btn"
+            (click)="addDebt()"
+            [disabled]="addingDebt"
+          >
+            {{ addingDebt ? 'Agregando...' : '+ Agregar deuda' }}
+          </button>
+          <button
+            class="payment-btn"
+            (click)="addPayment()"
+            [disabled]="addingPayment"
+          >
+            {{ addingPayment ? 'Registrando...' : 'Registrar pago' }}
+          </button>
         </div>
 
       </div>

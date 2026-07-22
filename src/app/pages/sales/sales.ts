@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ProductsService } from '../../products.service';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+
 
 @Component({
   selector: 'app-sales',
@@ -30,6 +33,9 @@ export class Sales implements OnInit {
   newCustomerName = '';
 
   loadingProducts = false;
+
+  checkoutLoading = false;
+  creatingCustomer = false;
 
   searchTimeout: any = null;
 
@@ -64,6 +70,25 @@ export class Sales implements OnInit {
     };
   }
 
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      // El backend a veces manda message como array (ValidationPipe de Nest)
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
   loadProducts(search: string = '', categoryId: number | null = null) {
     this.loadingProducts = true;
     this.cd.detectChanges();
@@ -71,7 +96,7 @@ export class Sales implements OnInit {
     this.productsService.getProducts(search, categoryId).subscribe({
       next: (res) => {
         this.products = res;
-        // Filtrar localmente solo para agrupar
+
         const groups: any = {};
         res.forEach(p => {
           const category = p.category?.name || 'Sin categoria';
@@ -85,6 +110,9 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error fetching products:', err);
+        this.toastr.error(
+          this.getErrorMessage(err, 'No se pudieron cargar los productos')
+        );
         this.loadingProducts = false;
         this.cd.detectChanges();
       }
@@ -93,7 +121,7 @@ export class Sales implements OnInit {
 
   loadCategories() {
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/categories',
+      `${API_URL}/categories`,
       { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
@@ -102,16 +130,19 @@ export class Sales implements OnInit {
         );
         this.cd.detectChanges();
       },
-      error: (err) => console.error('Error cargando categorías:', err)
+      error: (err) => {
+        console.error('Error cargando categorías:', err);
+        this.toastr.error(
+          this.getErrorMessage(err, 'No se pudieron cargar las categorías')
+        );
+      }
     });
   }
 
   loadCustomers() {
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/customers',
-      {
-        headers: this.getHeaders()
-      }
+      `${API_URL}/customers`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.customers = res;
@@ -119,18 +150,20 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando clientes:', err);
+        this.toastr.error(
+          this.getErrorMessage(err, 'No se pudieron cargar los clientes')
+        );
       }
     });
   }
 
   updateFilteredProducts() {
-    // Si hay categoría seleccionada, buscar en el servidor
+
     if (this.selectedCategoryId !== null) {
       this.loadProducts(this.search, this.selectedCategoryId);
       return;
     }
 
-    // Sin categoría, filtrar localmente los que ya tenemos
     this.filteredProducts = this.products;
     const groups: any = {};
     this.filteredProducts.forEach(p => {
@@ -148,10 +181,16 @@ export class Sales implements OnInit {
     );
 
     if (existing) {
-      if (existing.quantity >= product.stock) return;
+      if (existing.quantity >= product.stock) {
+        this.toastr.warning(`No hay más stock de "${product.name}"`);
+        return;
+      }
       existing.quantity++;
     } else {
-      if (product.stock <= 0) return;
+      if (product.stock <= 0) {
+        this.toastr.warning(`"${product.name}" no tiene stock disponible`);
+        return;
+      }
 
       this.cart.push({
         itemType: 'PRODUCT',
@@ -196,6 +235,10 @@ export class Sales implements OnInit {
       return;
     }
 
+    if (this.checkoutLoading) {
+      return;
+    }
+
     const items = this.cart.map(p => ({
       itemType: p.itemType,
       productId: p.itemType === 'PRODUCT' ? p.productId : null,
@@ -206,8 +249,11 @@ export class Sales implements OnInit {
       quantity: p.quantity
     }));
 
+    this.checkoutLoading = true;
+    this.cd.detectChanges();
+
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/sales',
+      `${API_URL}/sales`,
       {
         items,
         payments: this.payments,
@@ -221,8 +267,11 @@ export class Sales implements OnInit {
       }
     ).subscribe({
       next: (res) => {
+        this.checkoutLoading = false;
+
         if (!res || !res.id) {
           this.toastr.error('La venta no se guardó correctamente');
+          this.cd.detectChanges();
           return;
         }
 
@@ -231,8 +280,9 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error backend:', err);
+        this.checkoutLoading = false;
         this.toastr.error(
-          err.error?.message || err.error || 'Error al realizar la venta'
+          this.getErrorMessage(err, 'Error al realizar la venta')
         );
         this.cd.detectChanges();
       }
@@ -266,6 +316,8 @@ export class Sales implements OnInit {
       if (item.quantity < item.stock) {
         item.quantity++;
         this.saveCart();
+      } else {
+        this.toastr.warning(`No hay más stock de "${item.name}"`);
       }
       return;
     }
@@ -347,8 +399,14 @@ export class Sales implements OnInit {
       return;
     }
 
+    if (this.creatingCustomer) {
+      return;
+    }
+
+    this.creatingCustomer = true;
+
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/customers',
+      `${API_URL}/customers`,
       {
         name: this.newCustomerName
       },
@@ -357,6 +415,7 @@ export class Sales implements OnInit {
       }
     ).subscribe({
       next: (res) => {
+        this.creatingCustomer = false;
         this.customers.push(res);
         this.selectedCustomerId = res.id;
         this.newCustomerName = '';
@@ -366,9 +425,11 @@ export class Sales implements OnInit {
       },
       error: (err) => {
         console.error('Error creando cliente:', err);
+        this.creatingCustomer = false;
         this.toastr.error(
-          err.error?.message || err.error || 'Error creando cliente'
+          this.getErrorMessage(err, 'Error creando cliente')
         );
+        this.cd.detectChanges();
       }
     });
   }
@@ -404,19 +465,24 @@ export class Sales implements OnInit {
 
     if (!saved) return;
 
-    const data = JSON.parse(saved);
+    try {
+      const data = JSON.parse(saved);
 
-    this.cart = data.cart || [];
+      this.cart = data.cart || [];
 
-    this.payments = data.payments || [
-      {
-        method: 'CASH',
-        amount: 0
-      }
-    ];
+      this.payments = data.payments || [
+        {
+          method: 'CASH',
+          amount: 0
+        }
+      ];
 
-    this.discount = data.discount || 0;
-    this.selectedCustomerId = data.selectedCustomerId || null;
+      this.discount = data.discount || 0;
+      this.selectedCustomerId = data.selectedCustomerId || null;
+    } catch (e) {
+      console.error('Error leyendo carrito guardado:', e);
+      this.clearCartStorage();
+    }
   }
 
   clearCartStorage() {
@@ -427,3 +493,4 @@ export class Sales implements OnInit {
     return Number(val);
   }
 }
+

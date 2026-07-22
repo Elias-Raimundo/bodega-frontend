@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule} from '@angular/router';
@@ -51,6 +51,14 @@ export class Products implements OnInit {
   selectedImportFile: File | null = null;
   importing = false;
 
+  // NUEVO: flags de carga para evitar doble submit en crear/editar/eliminar
+  creatingProduct = false;
+  updatingProduct = false;
+  deletingProductId: number | null = null;
+  creatingCategory = false;
+  updatingCategory = false;
+  deletingCategoryId: number | null = null;
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -70,6 +78,28 @@ export class Products implements OnInit {
       });
   }
 
+  // Mismo helper que en sales.ts / tables.ts
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.error?.error) {
+      return err.error.error;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
   load(search: string = '', categoryId: number | null = null, forceRefresh = false) {
     this.loadingProducts = true;
     this.cdr.detectChanges();
@@ -82,6 +112,7 @@ export class Products implements OnInit {
       },
       error: (err) => {
         console.error('Error fetching products:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
         this.loadingProducts = false;
         this.cdr.detectChanges();
       }
@@ -100,11 +131,17 @@ export class Products implements OnInit {
   }
 
   loadCategories() {
-    this.http.get<any[]>(`${this.apiUrl}/categories`)
-      .subscribe(res => {
+
+    this.http.get<any[]>(`${this.apiUrl}/categories`).subscribe({
+      next: (res) => {
         this.categories = res;
         this.cdr.detectChanges();
-      });
+      },
+      error: (err) => {
+        console.error('Error cargando categorías:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar las categorías'));
+      }
+    });
   }
 
   create() {
@@ -125,33 +162,56 @@ export class Products implements OnInit {
       return;
     }
 
+    if (this.creatingProduct) return;
+    this.creatingProduct = true;
+
     this.http.post(`${this.apiUrl}/products`, {
       name: this.name,
       price: this.price,
       stock: this.stock,
       categoryId: this.selectedCategoryId
-    }).subscribe(() => {
-      this.toastr.success('Producto creado correctamente');
-      this.createAttempted = false;
-      this.name = '';
-      this.price = null;
-      this.stock = null;
-      this.selectedCategoryId = null;
-      this.showCreateProductModal = false;
-      this.productsService.invalidateCache();
-      this.load();
+    }).subscribe({
+      next: () => {
+        this.creatingProduct = false;
+        this.toastr.success('Producto creado correctamente');
+        this.createAttempted = false;
+        this.name = '';
+        this.price = null;
+        this.stock = null;
+        this.selectedCategoryId = null;
+        this.showCreateProductModal = false;
+        this.productsService.invalidateCache();
+        this.load();
+      },
+      error: (err) => {
+        console.error('Error creando producto:', err);
+        this.creatingProduct = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo crear el producto'));
+      }
     });
   }
 
   delete(id: number) {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
 
-    this.http.delete(`${this.apiUrl}/products/${id}`)
-      .subscribe(() => {
-        this.toastr.error('Producto eliminado');
+    if (this.deletingProductId === id) return;
+    this.deletingProductId = id;
+
+    this.http.delete(`${this.apiUrl}/products/${id}`).subscribe({
+      next: () => {
+        this.deletingProductId = null;
+        // ANTES: toastr.error() para una eliminación exitosa — el rojo
+        // confunde, parece que algo salió mal cuando en realidad se borró bien.
+        this.toastr.success('Producto eliminado');
         this.productsService.invalidateCache();
         this.load();
-      });
+      },
+      error: (err) => {
+        console.error('Error eliminando producto:', err);
+        this.deletingProductId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar el producto'));
+      }
+    });
   }
 
   openEdit(p: any) {
@@ -175,32 +235,59 @@ export class Products implements OnInit {
   }
 
   updateCategory() {
+    if (!this.editingCategoryName.trim()) {
+      this.toastr.error('El nombre de la categoría es obligatorio');
+      return;
+    }
+
+    if (this.updatingCategory) return;
+    this.updatingCategory = true;
+
     this.http.put(
       `${this.apiUrl}/categories/${this.editingCategory.id}`,
       { name: this.editingCategoryName }
-    ).subscribe(() => {
-      this.toastr.info('Categoría actualizada');
+    ).subscribe({
+      next: () => {
+        this.updatingCategory = false;
+        this.toastr.info('Categoría actualizada');
 
-      this.editingCategory = null;
-      this.editingCategoryName = '';
-      this.productsService.invalidateCache();
+        this.editingCategory = null;
+        this.editingCategoryName = '';
+        this.productsService.invalidateCache();
 
-      this.loadCategories();
-      this.load();
+        this.loadCategories();
+        this.load();
+      },
+      error: (err) => {
+        console.error('Error actualizando categoría:', err);
+        this.updatingCategory = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar la categoría'));
+      }
     });
   }
 
   deleteCategory(id: number) {
     if (!confirm('¿Eliminar categoría?')) return;
 
-    this.http.delete(`${this.apiUrl}/categories/${id}`)
-      .subscribe(() => {
-        this.toastr.error('Categoría eliminada');
+    if (this.deletingCategoryId === id) return;
+    this.deletingCategoryId = id;
 
-        this.productsService.invalidateCache();  // ← agregar
+    this.http.delete(`${this.apiUrl}/categories/${id}`).subscribe({
+      next: () => {
+        this.deletingCategoryId = null;
+        // Mismo fix de color que en delete() de productos
+        this.toastr.success('Categoría eliminada');
+
+        this.productsService.invalidateCache();
         this.loadCategories();
         this.load();
-      });
+      },
+      error: (err) => {
+        console.error('Error eliminando categoría:', err);
+        this.deletingCategoryId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar la categoría'));
+      }
+    });
   }
 
   update() {
@@ -221,17 +308,28 @@ export class Products implements OnInit {
       return;
     }
 
+    if (this.updatingProduct) return;
+    this.updatingProduct = true;
+
     this.http.put(`${this.apiUrl}/products/${this.editingProduct.id}`, {
       name: this.editingProduct.name,
       price: this.editingProduct.price,
       stock: this.editingProduct.stock,
       categoryId: this.editingProduct.categoryId
-    }).subscribe(() => {
-      this.toastr.info('Producto actualizado');
-      this.editAttempted = false;
-      this.editingProduct = null;
-      this.productsService.invalidateCache();
-      this.load();
+    }).subscribe({
+      next: () => {
+        this.updatingProduct = false;
+        this.toastr.info('Producto actualizado');
+        this.editAttempted = false;
+        this.editingProduct = null;
+        this.productsService.invalidateCache();
+        this.load();
+      },
+      error: (err) => {
+        console.error('Error actualizando producto:', err);
+        this.updatingProduct = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el producto'));
+      }
     });
   }
 
@@ -260,6 +358,8 @@ export class Products implements OnInit {
       this.toastr.error('Seleccioná un archivo CSV');
       return;
     }
+
+    if (this.importing) return;
 
     const formData = new FormData();
     formData.append('file', this.selectedImportFile);
@@ -348,16 +448,30 @@ export class Products implements OnInit {
   }
 
   createCategory() {
-    if (!this.newCategory.trim()) return;
+    if (!this.newCategory.trim()) {
+      this.toastr.warning('Ingresá un nombre de categoría');
+      return;
+    }
+
+    if (this.creatingCategory) return;
+    this.creatingCategory = true;
 
     this.http.post(`${this.apiUrl}/categories`, {
       name: this.newCategory
-    }).subscribe(() => {
-      this.toastr.success('Categoría creada');
+    }).subscribe({
+      next: () => {
+        this.creatingCategory = false;
+        this.toastr.success('Categoría creada');
 
-      this.newCategory = '';
+        this.newCategory = '';
 
-      this.loadCategories();
+        this.loadCategories();
+      },
+      error: (err) => {
+        console.error('Error creando categoría:', err);
+        this.creatingCategory = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo crear la categoría'));
+      }
     });
   }
 

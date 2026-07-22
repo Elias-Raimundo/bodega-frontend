@@ -1,9 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
 import { PreparedProductsService } from '../../prepared-products.service';
 import { ProductsService } from '../../products.service';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en sales.ts
 
 @Component({
   selector: 'app-tables',
@@ -39,9 +43,16 @@ export class Tables implements OnInit {
     }
   ];
 
+  // NUEVO: flags de carga para evitar doble clic en acciones críticas
+  closingTable = false;
+  deletingTableId: number | null = null;
+  registeringPartialPayment = false;
+  creatingTables = false;
+
   constructor(
     private http: HttpClient,
     private cdRef: ChangeDetectorRef,
+    private toastr: ToastrService,
     private productsService: ProductsService,
     private preparedProductsService: PreparedProductsService
   ) {}
@@ -57,11 +68,32 @@ export class Tables implements OnInit {
     return localStorage.getItem('token');
   }
 
-  loadTables() {
-    const token = this.getToken();
+  getHeaders() {
+    return { Authorization: `Bearer ${this.getToken()}` };
+  }
 
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/tables', {
-      headers: { Authorization: `Bearer ${token}` }
+  // Mismo helper que en sales.ts: mensaje legible desde cualquier error HTTP
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
+  loadTables() {
+    this.http.get<any[]>(`${API_URL}/tables`, {
+      headers: this.getHeaders()
     }).subscribe({
       next: (res) => {
         this.tables = res;
@@ -69,6 +101,7 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando mesas:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar las mesas'));
       }
     });
   }
@@ -81,6 +114,7 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando productos:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
       }
     });
   }
@@ -93,49 +127,57 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error cargando preparados:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los preparados'));
       }
     });
   }
 
   initTables() {
-    const token = this.getToken();
+    if (this.creatingTables) return;
+
+    if (!this.tableCount || this.tableCount <= 0) {
+      this.toastr.warning('Ingresá una cantidad de mesas válida');
+      return;
+    }
+
+    this.creatingTables = true;
 
     this.http.post<any[]>(
-      `https://bodega-backend-9c4f.onrender.com/tables/init?count=${this.tableCount}`,
+      `${API_URL}/tables/init?count=${this.tableCount}`,
       {},
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.creatingTables = false;
+        this.toastr.success('Mesas creadas correctamente');
         this.loadTables();
       },
       error: (err) => {
         console.error('Error creando mesas:', err);
+        this.creatingTables = false;
+        this.toastr.error(this.getErrorMessage(err, 'Error creando mesas'));
       }
     });
   }
 
   openTable(table: any) {
-    const token = this.getToken();
-
     this.selectedTable = table;
 
     this.http.get<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/${table.id}/order`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      `${API_URL}/tables/${table.id}/order`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedOrder = res;
-
         this.loadTables();
-
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error abriendo mesa:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo abrir la mesa'));
+        // Si falló la apertura, no dejamos el modal "colgado" con una mesa
+        // seleccionada pero sin pedido cargado.
+        this.selectedTable = null;
       }
     });
   }
@@ -143,13 +185,9 @@ export class Tables implements OnInit {
   refreshCurrentOrder() {
     if (!this.selectedTable) return;
 
-    const token = this.getToken();
-
     this.http.get<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/order`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      `${API_URL}/tables/${this.selectedTable.id}/order`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedOrder = res;
@@ -158,6 +196,7 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error refrescando pedido:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el pedido'));
       }
     });
   }
@@ -183,24 +222,19 @@ export class Tables implements OnInit {
   addItemToTable(item: any) {
     if (!this.selectedTable) return;
 
-    const token = this.getToken();
-
     this.http.post<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/items`,
+      `${API_URL}/tables/${this.selectedTable.id}/items`,
       item,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
-      next: (res) => {
+      next: () => {
         this.refreshCurrentOrder();
-
         this.loadTables();
-
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error agregando item:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo agregar el producto'));
       }
     });
   }
@@ -213,7 +247,7 @@ export class Tables implements OnInit {
       );
 
       if (product && item.quantity >= product.stock) {
-        alert('No hay más stock disponible');
+        this.toastr.warning('No hay más stock disponible');
         return;
       }
     }
@@ -224,7 +258,7 @@ export class Tables implements OnInit {
       );
 
       if (!prepared || !prepared.ingredients || prepared.ingredients.length === 0) {
-        alert('Este preparado no tiene ingredientes');
+        this.toastr.warning('Este preparado no tiene ingredientes');
         return;
       }
 
@@ -234,14 +268,14 @@ export class Tables implements OnInit {
         const product = ingredient.product;
 
         if (!product) {
-          alert('Ingrediente inválido');
+          this.toastr.warning('Ingrediente inválido');
           return;
         }
 
         const stockNeeded = ingredient.quantity * newQuantity;
 
         if (product.stock < stockNeeded) {
-          alert(`No hay más stock disponible de ${product.name}`);
+          this.toastr.warning(`No hay más stock disponible de ${product.name}`);
           return;
         }
       }
@@ -261,42 +295,33 @@ export class Tables implements OnInit {
   }
 
   updateItemQuantity(item: any, quantity: number) {
-    const token = this.getToken();
-
     this.http.put<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/items/${item.id}/quantity?quantity=${quantity}`,
+      `${API_URL}/tables/items/${item.id}/quantity?quantity=${quantity}`,
       {},
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedOrder = {
           ...res,
           items: [...(res.items || [])]
         };
-
         this.loadTables();
-
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error actualizando cantidad:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar la cantidad'));
       }
     });
   }
 
   removeItem(itemId: number) {
-    const token = this.getToken();
-
     this.http.delete(
-      `https://bodega-backend-9c4f.onrender.com/tables/items/${itemId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      `${API_URL}/tables/items/${itemId}`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
-        if (this.selectedTable){
+        if (this.selectedTable) {
           this.refreshCurrentOrder();
         }
         this.loadTables();
@@ -304,6 +329,7 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error eliminando item:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar el producto'));
       }
     });
   }
@@ -327,24 +353,25 @@ export class Tables implements OnInit {
     if (!this.selectedTable) return;
 
     if (!this.partialPaymentAmount || this.partialPaymentAmount <= 0) {
-      alert('Ingrese un monto válido');
+      this.toastr.warning('Ingrese un monto válido');
       return;
     }
 
     if (this.partialPaymentAmount > this.getRemainingBalance() + 0.01) {
-      alert('El monto supera el saldo pendiente');
+      this.toastr.warning('El monto supera el saldo pendiente');
       return;
     }
 
     if (this.partialPaymentMethod === 'CURRENT_ACCOUNT' && !this.partialPaymentCustomerId) {
-      alert('Seleccioná un cliente para cuenta corriente');
+      this.toastr.warning('Seleccioná un cliente para cuenta corriente');
       return;
     }
 
-    const token = this.getToken();
+    if (this.registeringPartialPayment) return;
+    this.registeringPartialPayment = true;
 
     this.http.post<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/partial-payment`,
+      `${API_URL}/tables/${this.selectedTable.id}/partial-payment`,
       {
         amount: this.partialPaymentAmount,
         method: this.partialPaymentMethod,
@@ -352,19 +379,21 @@ export class Tables implements OnInit {
           ? this.partialPaymentCustomerId
           : null
       },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
+        this.registeringPartialPayment = false;
         this.selectedOrder = res;
         this.partialPaymentAmount = null;
         this.partialPaymentMethod = 'CASH';
         this.partialPaymentCustomerId = null;
+        this.toastr.success('Pago registrado');
         this.cdRef.detectChanges();
       },
       error: (err) => {
-        alert(err.error?.message || 'Error registrando el pago parcial');
+        console.error('Error registrando pago parcial:', err);
+        this.registeringPartialPayment = false;
+        this.toastr.error(this.getErrorMessage(err, 'Error registrando el pago parcial'));
       }
     });
   }
@@ -374,20 +403,23 @@ export class Tables implements OnInit {
 
     if (!confirm('¿Eliminar esta mesa?')) return;
 
-    const token = this.getToken();
+    if (this.deletingTableId === tableId) return;
+    this.deletingTableId = tableId;
 
     this.http.delete(
-      `https://bodega-backend-9c4f.onrender.com/tables/${tableId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      `${API_URL}/tables/${tableId}`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.deletingTableId = null;
+        this.toastr.success('Mesa eliminada');
         this.loadTables();
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error eliminando mesa:', err);
+        this.deletingTableId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar la mesa'));
       }
     });
   }
@@ -395,26 +427,19 @@ export class Tables implements OnInit {
   updateTableName() {
     if (!this.selectedTable) return;
 
-    const token = this.getToken();
-
     this.http.put<any>(
-      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}`,
-      {
-        name: this.selectedTable.name
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
+      `${API_URL}/tables/${this.selectedTable.id}`,
+      { name: this.selectedTable.name },
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.selectedTable = res;
-
         this.loadTables();
-
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error actualizando nombre:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el nombre'));
       }
     });
   }
@@ -452,33 +477,49 @@ export class Tables implements OnInit {
   closeTable() {
     if (!this.selectedTable) return;
 
-    if (!this.selectedOrder?.items?.length) return;
+    if (!this.selectedOrder?.items?.length) {
+      this.toastr.warning('La mesa no tiene productos cargados');
+      return;
+    }
 
-    if (!this.paymentsMatch()) return;
+    if (this.hasCurrentAccount() && !this.selectedCustomerId) {
+      this.toastr.warning('Seleccioná un cliente para cuenta corriente');
+      return;
+    }
 
-    const token = this.getToken();
+    if (!this.paymentsMatch()) {
+      const diferencia = (
+        this.getRemainingBalance() - this.getPaymentsTotal()
+      ).toFixed(2);
+      this.toastr.warning(
+        `Los pagos no coinciden con el saldo pendiente (diferencia: $${diferencia})`
+      );
+      return;
+    }
+
+    if (this.closingTable) return;
+    this.closingTable = true;
 
     this.http.post(
-      `https://bodega-backend-9c4f.onrender.com/tables/${this.selectedTable.id}/close`,
+      `${API_URL}/tables/${this.selectedTable.id}/close`,
       {
         payments: this.payments,
         discount: Number(this.discount) || 0,
-        customerId: this.selectedCustomerId || null 
+        customerId: this.selectedCustomerId || null
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+      { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
+        this.closingTable = false;
+        this.toastr.success('Mesa cerrada correctamente');
+
         this.selectedTable = null;
         this.selectedOrder = null;
         this.search = '';
         this.discount = 0;
         this.selectedCustomerId = null;
-        this.partialPaymentAmount = null;       
-        this.partialPaymentMethod = 'CASH';       
+        this.partialPaymentAmount = null;
+        this.partialPaymentMethod = 'CASH';
         this.partialPaymentCustomerId = null;
         this.payments = [
           {
@@ -495,20 +536,25 @@ export class Tables implements OnInit {
       },
       error: (err) => {
         console.error('Error cerrando mesa:', err);
+        this.closingTable = false;
+        this.toastr.error(this.getErrorMessage(err, 'Error cerrando la mesa'));
+        this.cdRef.detectChanges();
       }
     });
   }
 
   loadCustomers() {
-    const token = this.getToken();
-    this.http.get<any[]>('https://bodega-backend-9c4f.onrender.com/customers', {
-      headers: { Authorization: `Bearer ${token}` }
+    this.http.get<any[]>(`${API_URL}/customers`, {
+      headers: this.getHeaders()
     }).subscribe({
       next: (res) => {
         this.customers = res;
         this.cdRef.detectChanges();
       },
-      error: (err) => console.error('Error cargando clientes:', err)
+      error: (err) => {
+        console.error('Error cargando clientes:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los clientes'));
+      }
     });
   }
 
@@ -522,9 +568,9 @@ export class Tables implements OnInit {
     this.search = '';
     this.discount = 0;
     this.selectedCustomerId = null;
-    this.partialPaymentAmount = null;        // ← agregar
-    this.partialPaymentMethod = 'CASH';       // ← agregar
-    this.partialPaymentCustomerId = null;     // ← agregar
+    this.partialPaymentAmount = null;
+    this.partialPaymentMethod = 'CASH';
+    this.partialPaymentCustomerId = null;
 
     this.payments = [
       {
@@ -571,7 +617,6 @@ export class Tables implements OnInit {
       0
     );
   }
-
 
   getIngredientText(prepared: any) {
     if (!prepared.ingredients || prepared.ingredients.length === 0) {

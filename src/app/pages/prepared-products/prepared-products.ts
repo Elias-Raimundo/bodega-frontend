@@ -1,10 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 import { PreparedProductsService } from '../../prepared-products.service';
 import { ProductsService } from '../../products.service';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-prepared-products',
@@ -25,6 +29,10 @@ export class PreparedProducts implements OnInit {
   loadingProducts = false;
   loadingPrepared = false;
 
+  // NUEVO: flags de carga para evitar doble submit
+  saving = false;
+  deletingId: number | null = null;
+
   form = {
     name: '',
     price: 0,
@@ -40,6 +48,7 @@ export class PreparedProducts implements OnInit {
   constructor(
     private http: HttpClient,
     private cdRef: ChangeDetectorRef,
+    private toastr: ToastrService,
     private preparedProductsService: PreparedProductsService,
     private productsService: ProductsService
   ) {}
@@ -51,6 +60,29 @@ export class PreparedProducts implements OnInit {
 
   getToken() {
     return localStorage.getItem('token');
+  }
+
+  getHeaders() {
+    return { Authorization: `Bearer ${this.getToken()}` };
+  }
+
+  // Mismo helper que en el resto de los componentes
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
   }
 
   getPayload() {
@@ -76,6 +108,7 @@ export class PreparedProducts implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los preparados'));
         this.loadingPrepared = false;
         this.cdRef.detectChanges();
       }
@@ -94,6 +127,7 @@ export class PreparedProducts implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
         this.loadingProducts = false;
         this.cdRef.detectChanges();
       }
@@ -122,19 +156,21 @@ export class PreparedProducts implements OnInit {
 
   savePreparedProduct() {
     if (!this.form.name.trim()) {
-      alert('El nombre es obligatorio');
+      this.toastr.error('El nombre es obligatorio');
       return;
     }
 
     if (this.form.price < 0) {
-      alert('El precio no puede ser negativo');
+      this.toastr.error('El precio no puede ser negativo');
       return;
     }
 
     if (this.form.ingredients.some(i => !i.productId || i.quantity <= 0)) {
-      alert('Todos los ingredientes deben tener producto y vasos que rinde mayor a cero');
+      this.toastr.error('Todos los ingredientes deben tener producto y vasos que rinde mayor a cero');
       return;
     }
+
+    if (this.saving) return;
 
     if (this.editingId) {
       this.updatePreparedProduct();
@@ -144,21 +180,27 @@ export class PreparedProducts implements OnInit {
   }
 
   createPreparedProduct() {
-    const token = this.getToken();
+    this.saving = true;
 
     this.http.post(
-      'https://bodega-backend-9c4f.onrender.com/prepared-products',
+      `${API_URL}/prepared-products`,
       this.getPayload(),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.saving = false;
+        this.toastr.success('Preparado creado correctamente');
+        this.resetForm();
+        this.preparedProductsService.invalidateCache();
+        this.loadPreparedProducts();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error creando preparado:', err);
+        this.saving = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo crear el preparado'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      this.resetForm();
-      this.preparedProductsService.invalidateCache();
-      this.loadPreparedProducts();
-      this.cdRef.detectChanges();
     });
   }
 
@@ -187,21 +229,27 @@ export class PreparedProducts implements OnInit {
   updatePreparedProduct() {
     if (!this.editingId) return;
 
-    const token = this.getToken();
+    this.saving = true;
 
     this.http.put(
-      `https://bodega-backend-9c4f.onrender.com/prepared-products/${this.editingId}`,
+      `${API_URL}/prepared-products/${this.editingId}`,
       this.getPayload(),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.saving = false;
+        this.toastr.info('Preparado actualizado');
+        this.resetForm();
+        this.preparedProductsService.invalidateCache();
+        this.loadPreparedProducts();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error actualizando preparado:', err);
+        this.saving = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el preparado'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      this.resetForm();
-      this.preparedProductsService.invalidateCache();
-      this.loadPreparedProducts();
-      this.cdRef.detectChanges();
     });
   }
 
@@ -229,22 +277,30 @@ export class PreparedProducts implements OnInit {
   deletePreparedProduct(id: number) {
     if (!confirm('¿Eliminar este preparado?')) return;
 
-    const token = this.getToken();
+    if (this.deletingId === id) return;
+    this.deletingId = id;
 
     this.http.delete(
-      `https://bodega-backend-9c4f.onrender.com/prepared-products/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+      `${API_URL}/prepared-products/${id}`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.deletingId = null;
+        this.toastr.success('Preparado eliminado');
+
+        if (this.editingId === id) {
+          this.resetForm();
         }
+        this.preparedProductsService.invalidateCache();
+        this.loadPreparedProducts();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error eliminando preparado:', err);
+        this.deletingId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar el preparado'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      if (this.editingId === id) {
-        this.resetForm();
-      }
-      this.preparedProductsService.invalidateCache();
-      this.loadPreparedProducts();
-      this.cdRef.detectChanges();
     });
   }
 
@@ -256,7 +312,10 @@ export class PreparedProducts implements OnInit {
     return prepared.ingredients
       .map((i: any) => {
         const vasos = i.quantity ? 1 / i.quantity : 0;
-        return `${i.product?.name} - rinde ${vasos.toFixed(0)} vasos`;
+        const vasosRedondeado = vasos.toFixed(0);
+        // Corrección menor de concordancia: "1 vaso" en singular, "2 vasos" en plural
+        const palabra = Number(vasosRedondeado) === 1 ? 'vaso' : 'vasos';
+        return `${i.product?.name} - rinde ${vasosRedondeado} ${palabra}`;
       })
       .join(' + ');
   }

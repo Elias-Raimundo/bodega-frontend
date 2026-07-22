@@ -112,11 +112,12 @@
       <button
         class="save-btn"
         (click)="savePreparedProduct()"
+        [disabled]="saving"
       >
         {{
-          editingId
-            ? 'Actualizar preparado'
-            : 'Guardar preparado'
+          saving
+            ? (editingId ? 'Actualizando...' : 'Guardando...')
+            : (editingId ? 'Actualizar preparado' : 'Guardar preparado')
         }}
       </button>
 
@@ -194,8 +195,9 @@
         <button
           class="delete-btn"
           (click)="deletePreparedProduct(prepared.id)"
+          [disabled]="deletingId === prepared.id"
         >
-          Eliminar
+          {{ deletingId === prepared.id ? 'Eliminando...' : 'Eliminar' }}
         </button>
 
       </div>

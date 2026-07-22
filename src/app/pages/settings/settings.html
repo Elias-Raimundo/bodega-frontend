@@ -33,8 +33,9 @@
         <button
           class="primary"
           (click)="upload()"
+          [disabled]="uploadingLogo"
         >
-          Guardar logo
+          {{ uploadingLogo ? 'Guardando...' : 'Guardar logo' }}
         </button>
 
       </div>
@@ -54,8 +55,9 @@
         <button
           class="primary"
           (click)="saveSettings()"
+          [disabled]="savingSettings"
         >
-          Guardar cambios
+          {{ savingSettings ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
 

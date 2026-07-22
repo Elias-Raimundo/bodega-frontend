@@ -171,6 +171,7 @@
             <button
               class="delete"
               (click)="delete(p.id)"
+              [disabled]="deletingProductId === p.id"
             >
               🗑️
             </button>
@@ -236,8 +237,9 @@
         <button
           class="primary"
           (click)="create()"
+          [disabled]="creatingProduct"
         >
-          Crear
+          {{ creatingProduct ? 'Creando...' : 'Crear' }}
         </button>
 
         <button
@@ -273,8 +275,9 @@
         <button
           class="primary"
           (click)="createCategory()"
+          [disabled]="creatingCategory"
         >
-          Crear
+          {{ creatingCategory ? 'Creando...' : 'Crear' }}
         </button>
 
       </div>
@@ -300,6 +303,7 @@
             <button
               class="delete"
               (click)="deleteCategory(c.id)"
+              [disabled]="deletingCategoryId === c.id"
             >
               🗑️
             </button>
@@ -368,8 +372,12 @@
 
       <div class="modal-actions">
 
-        <button class= "editi" (click)="update()">
-          Guardar
+        <button 
+          class="editi" 
+          (click)="update()"
+          [disabled]="updatingProduct"
+        >
+          {{ updatingProduct ? 'Guardando...' : 'Guardar' }}
         </button>
 
         <button
@@ -396,8 +404,11 @@
 
       <div class="modal-actions">
 
-        <button (click)="updateCategory()">
-          Guardar
+        <button 
+          (click)="updateCategory()"
+          [disabled]="updatingCategory"
+        >
+          {{ updatingCategory ? 'Guardando...' : 'Guardar' }}
         </button>
 
         <button

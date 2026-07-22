@@ -254,8 +254,11 @@
               placeholder="Nuevo cliente"
             />
 
-            <button (click)="createQuickCustomer()">
-              + Crear
+            <button
+              (click)="createQuickCustomer()"
+              [disabled]="creatingCustomer"
+            >
+              {{ creatingCustomer ? 'Creando...' : '+ Crear' }}
             </button>
           </div>
         </div>
@@ -287,11 +290,12 @@
         class="checkout"
         [disabled]="
           cart.length === 0 ||
-          !paymentMethods() 
+          !paymentMethods() ||
+          checkoutLoading
         "
         (click)="checkout()"
       >
-        Vender
+        {{ checkoutLoading ? 'Procesando...' : 'Vender' }}
       </button>
 
     </div>

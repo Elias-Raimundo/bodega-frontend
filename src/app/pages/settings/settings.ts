@@ -1,9 +1,12 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../services/company.service';
 import { ToastrService } from 'ngx-toastr';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-settings',
@@ -16,6 +19,10 @@ export class Settings {
 
   companyName = '';
   logoUrl: string | null = null;
+
+  // NUEVO: flags de carga para evitar doble submit
+  savingSettings = false;
+  uploadingLogo = false;
 
   constructor(
     private http: HttpClient,
@@ -32,22 +39,64 @@ export class Settings {
     }
   }
 
+  getHeaders() {
+    const token = localStorage.getItem('token');
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  // Mismo helper que en el resto de los componentes
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
   saveSettings() {
 
+    if (!this.companyName.trim()) {
+      this.toastr.error('El nombre de la empresa es obligatorio');
+      return;
+    }
+
+    if (this.savingSettings) return;
+    this.savingSettings = true;
+
     this.http.put<any>(
-      'https://bodega-backend-9c4f.onrender.com/companies/update',
+      `${API_URL}/companies/update`,
       {
         name: this.companyName
+      },
+      // ANTES: faltaba el header de autenticación. Si el backend exige
+      // token en este endpoint (como en el resto del sistema), esto
+      // probablemente fallaba con 401 y, al no haber "error:", quedaba
+      // en silencio total.
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.savingSettings = false;
+        this.companyService.setCompany(res);
+
+        this.toastr.success('Configuración guardada');
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error guardando configuración:', err);
+        this.savingSettings = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo guardar la configuración'));
+        this.cdRef.detectChanges();
       }
-
-    ).subscribe((res) => {
-
-      this.companyService.setCompany(res);
-
-      this.toastr.success(
-        'Configuración guardada'
-      );
-      this.cdRef.detectChanges();
     });
   }
 
@@ -63,6 +112,12 @@ export class Settings {
       this.logoUrl = reader.result as string;
     };
 
+    reader.onerror = () => {
+      // NUEVO: si falla la lectura del archivo (archivo corrupto, muy
+      // grande, etc.) antes no había ningún aviso.
+      this.toastr.error('No se pudo leer el archivo de imagen');
+    };
+
     reader.readAsDataURL(file);
   }
 
@@ -72,27 +127,35 @@ export class Settings {
 
   upload() {
     if (!this.logoUrl){
-      this.toastr.error(
-        'No se ha seleccionado un logo'
-      );
+      this.toastr.error('No se ha seleccionado un logo');
       return;
     }
-    
+
+    if (this.uploadingLogo) return;
+    this.uploadingLogo = true;
+
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/companies/logo',
+      `${API_URL}/companies/logo`,
       {
         logo: this.logoUrl
+      },
+      // ANTES: mismo problema, faltaba el header de autenticación
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.uploadingLogo = false;
+        this.companyService.setCompany(res);
+        this.logoUrl = res.logo || null;
+
+        this.toastr.success('Logo actualizado');
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error subiendo logo:', err);
+        this.uploadingLogo = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el logo'));
+        this.cdRef.detectChanges();
       }
-
-    ).subscribe((res) => {
-
-      this.companyService.setCompany(res);
-      this.logoUrl = res.logo || null;
-
-      this.toastr.success(
-        'Logo actualizado'
-      );
-      this.cdRef.detectChanges();
     });
   }
 }

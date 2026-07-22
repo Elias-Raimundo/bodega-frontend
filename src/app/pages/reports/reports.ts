@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
+
+const API_URL = 'https://bodega-backend-9c4f.onrender.com';
+// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-reports',
@@ -42,7 +46,18 @@ export class Reports implements OnInit {
 
   selectedClosure: any = null;
 
-  constructor(private http: HttpClient, private cdRef: ChangeDetectorRef) {}
+  // NUEVO: flags de carga para evitar doble submit en acciones de caja
+  closingCash = false;
+  openingDailyCash = false;
+  addingExpense = false;
+  closingDailyCash = false;
+  deletingExpenseId: number | null = null;
+
+  constructor(
+    private http: HttpClient,
+    private cdRef: ChangeDetectorRef,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit() {
     const today = new Date();
@@ -60,6 +75,30 @@ export class Reports implements OnInit {
     this.loadLastClosedCash();
   }
 
+  getHeaders() {
+    const token = localStorage.getItem('token');
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  // Mismo helper que en el resto de los componentes
+  private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    if (err.status === 0) {
+      return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
+    }
+    if (typeof err.error === 'string' && err.error.trim()) {
+      return err.error;
+    }
+    if (err.error?.message) {
+      return Array.isArray(err.error.message)
+        ? err.error.message.join(', ')
+        : err.error.message;
+    }
+    if (err.status === 401) {
+      return 'Tu sesión expiró. Iniciá sesión de nuevo.';
+    }
+    return fallback;
+  }
+
   formatDate(date: Date): string {
     const year = date.getFullYear();
 
@@ -75,7 +114,6 @@ export class Reports implements OnInit {
   }
 
   loadReport() {
-    const token = localStorage.getItem('token');
     const from = `${this.fromDate}T${this.fromTime}`;
     const to = `${this.toDate}T${this.toTime}`;
 
@@ -83,8 +121,8 @@ export class Reports implements OnInit {
     this.cdRef.detectChanges();
 
     this.http.get<any>(
-      `https://bodega-backend-9c4f.onrender.com/sales/report?from=${from}&to=${to}`,
-      { headers: { 'Authorization': `Bearer ${token}` } }
+      `${API_URL}/sales/report?from=${from}&to=${to}`,
+      { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
         this.report = res;
@@ -93,6 +131,7 @@ export class Reports implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar el reporte'));
         this.loadingReport = false;
         this.cdRef.detectChanges();
       }
@@ -183,23 +222,24 @@ export class Reports implements OnInit {
   }
 
   loadCashClosures() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/cash-closures',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      `${API_URL}/cash-closures`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.cashClosures = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando cierres de caja:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los cierres de caja'));
       }
-    ).subscribe(res => {
-      this.cashClosures = res;
-      this.cdRef.detectChanges();
     });
   }
 
   closeCash() {
     if (!this.report) {
+      this.toastr.warning('Esperá a que cargue el reporte antes de cerrar la caja');
       return;
     }
 
@@ -211,26 +251,32 @@ export class Reports implements OnInit {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    if (this.closingCash) return;
+    this.closingCash = true;
 
-    const from =
-      `${this.fromDate}T${this.fromTime}`;
-
-    const to =
-      `${this.toDate}T${this.toTime}`;
+    const from = `${this.fromDate}T${this.fromTime}`;
+    const to = `${this.toDate}T${this.toTime}`;
 
     this.http.post<any>(
-      `https://bodega-backend-9c4f.onrender.com/cash-closures?from=${from}&to=${to}`,
+      `${API_URL}/cash-closures?from=${from}&to=${to}`,
       {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.closingCash = false;
+        this.loadCashClosures();
+        this.toastr.success('Caja cerrada correctamente');
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        // ANTES: no había NINGÚN manejo de error acá. Si el backend
+        // rechazaba el cierre (período ya cerrado, fechas inválidas,
+        // sesión vencida, etc.) no pasaba nada en absoluto.
+        console.error('Error cerrando caja:', err);
+        this.closingCash = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cerrar la caja'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      this.loadCashClosures();
-      alert('Caja cerrada correctamente');
-      this.cdRef.detectChanges();
     });
   }
 
@@ -247,137 +293,170 @@ export class Reports implements OnInit {
   }
 
   loadDailyCash() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/current',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+      `${API_URL}/daily-cash/current`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.dailyCash = res;
+
+        if (res) {
+          this.loadDailyCashExpenses();
         }
-      }
-    ).subscribe(res => {
-      this.dailyCash = res;
 
-      if (res) {
-        this.loadDailyCashExpenses();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando caja diaria:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar la caja diaria'));
       }
-
-      this.cdRef.detectChanges();
     });
   }
 
   openDailyCash() {
-    if (this.openingAmount === null) return;
+    if (this.openingAmount === null) {
+      this.toastr.warning('Ingresá el monto de apertura');
+      return;
+    }
 
-    const token = localStorage.getItem('token');
+    if (this.openingDailyCash) return;
+    this.openingDailyCash = true;
 
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/open',
-      {
-        openingAmount: this.openingAmount
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    ).subscribe(() => {
-      this.openingAmount = null;
-      this.loadDailyCash();
-      this.loadDailyCashHistory();
-      this.loadLastClosedCash();
+      `${API_URL}/daily-cash/open`,
+      { openingAmount: this.openingAmount },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.openingDailyCash = false;
+        this.toastr.success('Caja abierta correctamente');
+        this.openingAmount = null;
+        this.loadDailyCash();
+        this.loadDailyCashHistory();
+        this.loadLastClosedCash();
 
-      this.cdRef.detectChanges();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        // ANTES: sin manejo de error. Si ya había una caja abierta, o
+        // fallaba la validación, el botón "Abrir caja" no hacía nada.
+        console.error('Error abriendo caja diaria:', err);
+        this.openingDailyCash = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo abrir la caja'));
+        this.cdRef.detectChanges();
+      }
     });
   }
 
   loadDailyCashExpenses() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/expenses',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      `${API_URL}/daily-cash/expenses`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.dailyCashExpenses = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando gastos:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los gastos'));
       }
-    ).subscribe(res => {
-      this.dailyCashExpenses = res;
-      this.cdRef.detectChanges();
     });
   }
 
   addDailyExpense() {
-    if (!this.expenseDescription.trim()) return;
-    if (this.expenseAmount === null) return;
+    if (!this.expenseDescription.trim()) {
+      this.toastr.warning('Ingresá una descripción del gasto');
+      return;
+    }
+    if (this.expenseAmount === null || this.expenseAmount <= 0) {
+      this.toastr.warning('Ingresá un monto válido');
+      return;
+    }
 
-    const token = localStorage.getItem('token');
+    if (this.addingExpense) return;
+    this.addingExpense = true;
 
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/expenses',
+      `${API_URL}/daily-cash/expenses`,
       {
         description: this.expenseDescription,
         amount: this.expenseAmount
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    ).subscribe(() => {
-      this.expenseDescription = '';
-      this.expenseAmount = null;
-      this.loadDailyCashExpenses();
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.addingExpense = false;
+        this.toastr.success('Gasto registrado');
+        this.expenseDescription = '';
+        this.expenseAmount = null;
+        this.loadDailyCashExpenses();
 
-      this.cdRef.detectChanges();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error agregando gasto:', err);
+        this.addingExpense = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo registrar el gasto'));
+        this.cdRef.detectChanges();
+      }
     });
   }
 
   closeDailyCash() {
-    if (this.closingAmount === null) return;
+    if (this.closingAmount === null) {
+      this.toastr.warning('Ingresá el monto de cierre');
+      return;
+    }
 
     const confirmed = confirm('¿Cerrar la caja diaria?');
 
     if (!confirmed) return;
 
-    const token = localStorage.getItem('token');
+    if (this.closingDailyCash) return;
+    this.closingDailyCash = true;
 
     this.http.post<any>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/close',
-      {
-        closingAmount: this.closingAmount
+      `${API_URL}/daily-cash/close`,
+      { closingAmount: this.closingAmount },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        // ANTES: sin manejo de error. Este es probablemente el punto
+        // exacto donde "cerrar caja" fallaba en silencio.
+        this.closingDailyCash = false;
+        this.toastr.success('Caja diaria cerrada correctamente');
+        this.closingAmount = null;
+        this.dailyCash = null;
+        this.dailyCashExpenses = [];
+
+        this.loadDailyCash();
+        this.loadDailyCashHistory();
+
+        this.cdRef.detectChanges();
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      error: (err) => {
+        console.error('Error cerrando caja diaria:', err);
+        this.closingDailyCash = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cerrar la caja diaria'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      this.closingAmount = null;
-      this.dailyCash = null;
-      this.dailyCashExpenses = [];
-
-      this.loadDailyCash();
-      this.loadDailyCashHistory();
-
-      this.cdRef.detectChanges();
     });
   }
 
   loadDailyCashHistory() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/history',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      `${API_URL}/daily-cash/history`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.dailyCashHistory = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando historial de caja:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar el historial de caja'));
       }
-    ).subscribe(res => {
-      this.dailyCashHistory = res;
-      this.cdRef.detectChanges();
     });
   }
 
@@ -428,23 +507,23 @@ export class Reports implements OnInit {
   }
 
   loadLastClosedCash() {
-    const token = localStorage.getItem('token');
-
     this.http.get<any>(
-      'https://bodega-backend-9c4f.onrender.com/daily-cash/last-closed',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+      `${API_URL}/daily-cash/last-closed`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.lastClosedCash = res;
+
+        if (!this.dailyCash && res?.closingAmount) {
+          this.openingAmount = res.closingAmount;
         }
-      }
-    ).subscribe(res => {
-      this.lastClosedCash = res;
 
-      if (!this.dailyCash && res?.closingAmount) {
-        this.openingAmount = res.closingAmount;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando último cierre:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo cargar el último cierre de caja'));
       }
-
-      this.cdRef.detectChanges();
     });
   }
 
@@ -458,36 +537,43 @@ export class Reports implements OnInit {
   deleteDailyExpense(expenseId: number) {
     if (!confirm('¿Eliminar este gasto?')) return;
 
-    const token = localStorage.getItem('token');
+    if (this.deletingExpenseId === expenseId) return;
+    this.deletingExpenseId = expenseId;
 
     this.http.delete(
-      `https://bodega-backend-9c4f.onrender.com/daily-cash/expenses/${expenseId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      `${API_URL}/daily-cash/expenses/${expenseId}`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.deletingExpenseId = null;
+        this.toastr.success('Gasto eliminado');
+        this.loadDailyCashExpenses();
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error eliminando gasto:', err);
+        this.deletingExpenseId = null;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar el gasto'));
+        this.cdRef.detectChanges();
       }
-    ).subscribe(() => {
-      this.loadDailyCashExpenses();
-      this.cdRef.detectChanges();
     });
   }
 
   openDailyCashDetail(cash: any) {
     this.selectedDailyCash = cash;
 
-    const token = localStorage.getItem('token');
-
     this.http.get<any[]>(
-      `https://bodega-backend-9c4f.onrender.com/daily-cash/${cash.id}/expenses`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      `${API_URL}/daily-cash/${cash.id}/expenses`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.selectedDailyCashExpenses = res;
+        this.cdRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando gastos del detalle:', err);
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los gastos de esta caja'));
       }
-    ).subscribe(res => {
-      this.selectedDailyCashExpenses = res;
-      this.cdRef.detectChanges();
     });
   }
 
