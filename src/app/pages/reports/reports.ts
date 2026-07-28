@@ -46,7 +46,12 @@ export class Reports implements OnInit {
 
   selectedClosure: any = null;
 
-  // NUEVO: flags de carga para evitar doble submit en acciones de caja
+  soldProductsCache: any[] = [];
+  bestSalesDayCache: any = null;
+  biggestSaleCache: any = null;
+  reportSubtotalCache = 0;
+  reportDiscountCache = 0;
+
   closingCash = false;
   openingDailyCash = false;
   addingExpense = false;
@@ -126,6 +131,7 @@ export class Reports implements OnInit {
     ).subscribe({
       next: (res) => {
         this.report = res;
+        this.computeReportCaches();
         this.loadingReport = false;
         this.cdRef.detectChanges();
       },
@@ -138,42 +144,20 @@ export class Reports implements OnInit {
     });
   }
 
+  computeReportCaches() {
+    this.soldProductsCache = this.calculateSoldProducts();
+    this.bestSalesDayCache = this.calculateBestSalesDay();
+    this.biggestSaleCache = this.calculateBiggestSale();
+    this.reportSubtotalCache = this.calculateReportSubtotal();
+    this.reportDiscountCache = this.calculateReportDiscount();
+  }
+
   openSale(sale: any) {
     this.selectedSale = sale;
   }
 
   closeSale() {
     this.selectedSale = null;
-  }
-
-  getSoldProducts() {
-    if (!this.report?.sales) {
-      return [];
-    }
-
-    const productsMap = new Map<string, any>();
-
-    this.report.sales.forEach((sale: any) => {
-      sale.items?.forEach((item: any) => {
-        const key = item.productName;
-
-        if (!productsMap.has(key)) {
-          productsMap.set(key, {
-            productName: item.productName,
-            quantity: 0,
-            total: 0
-          });
-        }
-
-        const product = productsMap.get(key);
-
-        product.quantity += item.quantity;
-        product.total += item.quantity * item.price;
-      });
-    });
-
-    return Array.from(productsMap.values())
-      .sort((a, b) => b.quantity - a.quantity);
   }
 
   getPaymentMethodLabel(method: string): string {
@@ -198,31 +182,6 @@ export class Reports implements OnInit {
     }
   }
 
-  getBestSalesDay() {
-    if (!this.report?.sales?.length) return null;
-
-    const days = new Map<string, number>();
-
-    this.report.sales.forEach((sale: any) => {
-      const day = new Date(sale.createdAt).toLocaleDateString('es-AR');
-
-      days.set(
-        day,
-        (days.get(day) || 0) + sale.total
-      );
-    });
-
-    return Array.from(days.entries())
-      .map(([date, total]) => ({ date, total }))
-      .sort((a, b) => b.total - a.total)[0];
-  }
-
-  getBiggestSale() {
-    if (!this.report?.sales?.length) return null;
-
-    return [...this.report.sales]
-      .sort((a, b) => b.total - a.total)[0];
-  }
 
   loadCashClosures() {
     this.http.get<any[]>(
@@ -592,7 +551,64 @@ export class Reports implements OnInit {
     );
   }
 
-  getReportSubtotal() {
+
+  private calculateSoldProducts() {
+    if (!this.report?.sales) {
+      return [];
+    }
+
+    const productsMap = new Map<string, any>();
+
+    this.report.sales.forEach((sale: any) => {
+      sale.items?.forEach((item: any) => {
+        const key = item.productName;
+
+        if (!productsMap.has(key)) {
+          productsMap.set(key, {
+            productName: item.productName,
+            quantity: 0,
+            total: 0
+          });
+        }
+
+        const product = productsMap.get(key);
+
+        product.quantity += item.quantity;
+        product.total += item.quantity * item.price;
+      });
+    });
+
+    return Array.from(productsMap.values())
+      .sort((a, b) => b.quantity - a.quantity);
+  }
+
+  private calculateBestSalesDay() {
+    if (!this.report?.sales?.length) return null;
+
+    const days = new Map<string, number>();
+
+    this.report.sales.forEach((sale: any) => {
+      const day = new Date(sale.createdAt).toLocaleDateString('es-AR');
+
+      days.set(
+        day,
+        (days.get(day) || 0) + sale.total
+      );
+    });
+
+    return Array.from(days.entries())
+      .map(([date, total]) => ({ date, total }))
+      .sort((a, b) => b.total - a.total)[0];
+  }
+
+  private calculateBiggestSale() {
+    if (!this.report?.sales?.length) return null;
+
+    return [...this.report.sales]
+      .sort((a, b) => b.total - a.total)[0];
+  }
+
+  private calculateReportSubtotal() {
     if (!this.report?.sales) {
       return 0;
     }
@@ -603,7 +619,7 @@ export class Reports implements OnInit {
     );
   }
 
-  getReportDiscount() {
+  private calculateReportDiscount() {
     if (!this.report?.sales) {
       return 0;
     }
@@ -613,4 +629,5 @@ export class Reports implements OnInit {
       0
     );
   }
+
 }

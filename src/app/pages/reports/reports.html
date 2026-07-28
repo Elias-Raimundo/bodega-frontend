@@ -59,13 +59,13 @@
 
     <div class="extra-stats">
 
-      <div class="extra-card" *ngIf="getBestSalesDay() as bestDay">
+      <div class="extra-card" *ngIf="bestSalesDayCache as bestDay">
         <h4>📈 Mejor día</h4>
         <p>{{ bestDay.date }}</p>
         <strong>${{ bestDay.total | number:'1.0-0' }}</strong>
       </div>
 
-      <div class="extra-card" *ngIf="getBiggestSale() as biggestSale">
+      <div class="extra-card" *ngIf="biggestSaleCache as biggestSale">
         <h4>💰 Venta más grande</h4>
         <p>Venta #{{ biggestSale.id }}</p>
         <strong>${{ biggestSale.total | number:'1.0-0' }}</strong>
@@ -145,10 +145,10 @@
           <h3>🏆 Productos vendidos</h3>
           <p>Ranking de productos vendidos en el período seleccionado</p>
         </div>
-        <strong>{{ getSoldProducts().length }} productos</strong>
+        <strong>{{ soldProductsCache.length }} productos</strong>
       </div>
 
-      <div class="products-ranking" *ngIf="getSoldProducts().length">
+      <div class="products-ranking" *ngIf="soldProductsCache.length">
 
         <div class="ranking-header">
           <div>#</div>
@@ -157,7 +157,7 @@
           <div>Facturación</div>
         </div>
 
-        <div class="ranking-row" *ngFor="let product of getSoldProducts(); let i = index">
+        <div class="ranking-row" *ngFor="let product of soldProductsCache; let i = index">
           <div class="ranking-number">{{ i + 1 }}</div>
           <div class="ranking-product">{{ product.productName }}</div>
           <div>{{ product.quantity }}</div>
@@ -166,7 +166,7 @@
 
       </div>
 
-      <div class="empty-ranking" *ngIf="!getSoldProducts().length">
+      <div class="empty-ranking" *ngIf="!soldProductsCache.length">
         No hay productos vendidos en este período.
       </div>
 
