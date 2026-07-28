@@ -190,6 +190,9 @@ export class Reports implements OnInit {
       case 'CREDIT':
         return 'Crédito';
 
+      case 'CURRENT_ACCOUNT': 
+        return 'Cuenta Corriente';
+
       default:
         return method;
     }

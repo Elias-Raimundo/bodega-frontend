@@ -116,6 +116,9 @@
         <div>
           <span *ngFor="let payment of sale.payments; let last = last">
             {{ getPaymentMethodLabel(payment.method) }}
+            <ng-container *ngIf="payment.method === 'CURRENT_ACCOUNT' && sale.customerName">
+              ({{ sale.customerName }})
+            </ng-container>
             <span *ngIf="!last"> + </span>
           </span>
         </div>
@@ -414,7 +417,12 @@
       <div class="modal-section">
         <h4>Pagos</h4>
         <div class="payment-line" *ngFor="let payment of selectedSale.payments">
-          <div>{{ getPaymentMethodLabel(payment.method) }}</div>
+          <div>
+            {{ getPaymentMethodLabel(payment.method) }}
+            <span *ngIf="payment.method === 'CURRENT_ACCOUNT' && selectedSale.customerName" class="customer-tag">
+              — {{ selectedSale.customerName }}
+            </span>
+          </div>
           <div>${{ payment.amount | number:'1.0-0' }}</div>
         </div>
       </div>
