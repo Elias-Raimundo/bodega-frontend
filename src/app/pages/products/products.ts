@@ -78,7 +78,6 @@ export class Products implements OnInit {
       });
   }
 
-  // Mismo helper que en sales.ts / tables.ts
   private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
     if (err.status === 0) {
       return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';

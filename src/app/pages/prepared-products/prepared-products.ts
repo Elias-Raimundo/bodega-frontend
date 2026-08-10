@@ -66,7 +66,6 @@ export class PreparedProducts implements OnInit {
     return { Authorization: `Bearer ${this.getToken()}` };
   }
 
-  // Mismo helper que en el resto de los componentes
   private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
     if (err.status === 0) {
       return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
@@ -78,6 +77,9 @@ export class PreparedProducts implements OnInit {
       return Array.isArray(err.error.message)
         ? err.error.message.join(', ')
         : err.error.message;
+    }
+    if (err.error?.error) {
+      return err.error.error;
     }
     if (err.status === 401) {
       return 'Tu sesión expiró. Iniciá sesión de nuevo.';
