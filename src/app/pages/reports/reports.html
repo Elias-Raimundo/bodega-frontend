@@ -425,6 +425,12 @@
           </div>
           <div>${{ payment.amount | number:'1.0-0' }}</div>
         </div>
+        <div class="modal-actions">
+          <button (click)="downloadSalePdf(selectedSale)">
+            📄 Descargar PDF
+          </button>
+          <button (click)="closeSale()">Cerrar</button>
+        </div>
       </div>
 
     </div>

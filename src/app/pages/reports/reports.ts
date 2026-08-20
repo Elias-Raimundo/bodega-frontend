@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const API_URL = 'https://bodega-backend-9c4f.onrender.com';
 // TODO: mover a environment.ts, mismo comentario que en los demás componentes
@@ -45,6 +47,7 @@ export class Reports implements OnInit {
   selectedSale: any = null;
 
   selectedClosure: any = null;
+  company: any = null;
 
   soldProductsCache: any[] = [];
   bestSalesDayCache: any = null;
@@ -78,6 +81,7 @@ export class Reports implements OnInit {
     this.loadDailyCash();
     this.loadDailyCashHistory();
     this.loadLastClosedCash();
+    this.loadCompany();
   }
 
   getHeaders() {
@@ -118,6 +122,20 @@ export class Reports implements OnInit {
     ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  loadCompany() {
+    this.http.get<any>(
+      `${API_URL}/companies/me`,
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.company = res;
+      },
+      error: (err) => {
+        console.error('Error cargando datos de la empresa:', err);
+      }
+    });
   }
 
   loadReport() {
@@ -254,6 +272,73 @@ export class Reports implements OnInit {
 
   printClosure() {
     window.print();
+  }
+
+  downloadSalePdf(sale: any) {
+    const doc = new jsPDF();
+
+    if (this.company?.logo) {
+      try {
+        const logoData = this.company.logo.startsWith('data:')
+          ? this.company.logo
+          : `data:image/png;base64,${this.company.logo}`;
+
+        const format = this.getImageFormat(logoData);
+        doc.addImage(logoData, format, 14, 10, 20, 20);
+      } catch (e) {
+        console.error('No se pudo agregar el logo al PDF:', e);
+      }
+    }
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(this.company?.name || 'El Budagon', 40, 20);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(`Venta #${sale.id}`, 40, 27);
+    doc.text(new Date(sale.createdAt).toLocaleString('es-AR'), 40, 32);
+    doc.setTextColor(0);
+
+    const rows = (sale.items || []).map((item: any) => [
+      item.productName,
+      item.quantity,
+      `$${item.price}`,
+      `$${item.quantity * item.price}`
+    ]);
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Producto', 'Cant.', 'Precio', 'Subtotal']],
+      body: rows,
+      headStyles: { fillColor: [99, 102, 241] }
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || 40;
+
+    const paymentsText = sale.payments
+      ?.map((p: any) => `${this.getPaymentMethodLabel(p.method)}: $${p.amount}`)
+      .join(' | ') || '';
+
+    doc.setFontSize(10);
+    doc.text(paymentsText, 14, finalY + 10);
+
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total: $${sale.total}`, 14, finalY + 18);
+
+    doc.save(`venta-${sale.id}.pdf`);
+  }
+
+  private getImageFormat(dataUrl: string): string {
+    const match = dataUrl.match(/^data:image\/(\w+);base64,/);
+    if (!match) return 'PNG';
+
+    const type = match[1].toUpperCase();
+    // jsPDF acepta: PNG, JPEG, WEBP
+    if (type === 'JPG') return 'JPEG';
+    return type; // PNG, JPEG, WEBP
   }
 
   loadDailyCash() {
