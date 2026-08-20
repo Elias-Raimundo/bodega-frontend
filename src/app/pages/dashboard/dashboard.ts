@@ -8,7 +8,6 @@ import { ProductsService } from '../../products.service';
 import { PreparedProductsService } from '../../prepared-products.service';
 
 const API_URL = 'https://bodega-backend-9c4f.onrender.com';
-// TODO: mover a environment.ts, mismo comentario que en los demás componentes
 
 @Component({
   selector: 'app-dashboard',
@@ -17,32 +16,34 @@ const API_URL = 'https://bodega-backend-9c4f.onrender.com';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-
 export class Dashboard implements OnInit {
 
   stats: any = null;
   sales: any[] = [];
-
   paymentStats: any = null;
 
-  products: any[] = [];
+  // CAMBIO: ya no guardamos "products" crudo, guardamos el resultado
+  // ya filtrado/ordenado, calculado una sola vez al llegar la data.
+  lowStock: any[] = [];
 
   loadingStats = false;
   loadingSales = false;
+  loadingProducts = false; // NUEVO: para mostrar loading si hace falta en el html
 
-  constructor(private router: Router, 
-    private http: HttpClient, 
+  constructor(
+    private router: Router,
+    private http: HttpClient,
     private cdRef: ChangeDetectorRef,
     private toastr: ToastrService,
     private productsService: ProductsService,
     private preparedProductsService: PreparedProductsService
   ) {}
 
-  ngOnInit(){
-      this.loadStats();
-      this.loadSales();
-      this.loadPaymentStats();
-      this.loadProducts();
+  ngOnInit() {
+    this.loadStats();
+    this.loadSales();
+    this.loadPaymentStats();
+    this.loadProducts();
   }
 
   getHeaders() {
@@ -50,7 +51,6 @@ export class Dashboard implements OnInit {
     return { Authorization: `Bearer ${token}` };
   }
 
-  // Mismo helper que en el resto de los componentes
   private getErrorMessage(err: HttpErrorResponse, fallback: string): string {
     if (err.status === 0) {
       return 'No se pudo conectar con el servidor. Revisá tu conexión a internet.';
@@ -137,34 +137,38 @@ export class Dashboard implements OnInit {
         return 'Débito';
       case 'CREDIT':
         return 'Crédito';
-      case 'CURRENT_ACCOUNT': 
+      case 'CURRENT_ACCOUNT':
         return 'Cuenta Corriente';
       default:
         return method;
     }
   }
 
-  lowStockProducts(): any[] {
-    return this.products
-      .filter(p =>
-          p.stock <= 5
-      )
-      .sort((a, b) => a.stock - b.stock)
-      .slice(0, 5);
-  }
-
+  // CAMBIO: ahora usa el ProductsService (con su cache) en vez de
+  // pegarle directo al backend con HttpClient crudo. Si el usuario
+  // ya visitó "Productos" en esta sesión, esto no dispara ningún
+  // request nuevo — usa lo que ya está en memoria.
   loadProducts() {
-    this.http.get<any[]>(
-      `${API_URL}/products`,
-      { headers: this.getHeaders() }
-    ).subscribe({
+    this.loadingProducts = true;
+    this.cdRef.detectChanges();
+
+    this.productsService.getProducts().subscribe({
       next: (res) => {
-        this.products = res;
+        // CAMBIO: el filtro/orden se calcula una sola vez acá,
+        // no en cada ciclo de detección de cambios como antes.
+        this.lowStock = res
+          .filter(p => p.stock <= 5)
+          .sort((a, b) => a.stock - b.stock)
+          .slice(0, 5);
+
+        this.loadingProducts = false;
         this.cdRef.detectChanges();
       },
       error: (err) => {
         console.error('Error loading products:', err);
         this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
+        this.loadingProducts = false;
+        this.cdRef.detectChanges();
       }
     });
   }
