@@ -278,32 +278,20 @@ export class Reports implements OnInit {
     const doc = new jsPDF();
     const fmt = (n: number) => `$${Number(n).toLocaleString('es-AR')}`;
 
-    if (this.company?.logo) {
-      try {
-        const logoData = this.company.logo.startsWith('data:')
-          ? this.company.logo
-          : `data:image/png;base64,${this.company.logo}`;
-        const format = this.getImageFormat(logoData);
-        doc.addImage(logoData, format, 14, 12, 22, 22);
-      } catch (e) {
-        console.error('No se pudo agregar el logo al PDF:', e);
-      }
-    }
-
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(this.company?.name || 'El Budagon', 42, 22);
+    doc.text(this.company?.name || 'El Budagon', 14, 20);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(120);
-    doc.text(`Venta #${sale.id}`, 42, 29);
-    doc.text(new Date(sale.createdAt).toLocaleString('es-AR'), 42, 34);
+    doc.text(`Venta #${sale.id}`, 14, 27);
+    doc.text(new Date(sale.createdAt).toLocaleString('es-AR'), 14, 32);
     doc.setTextColor(0);
 
     // línea separadora bajo el header
     doc.setDrawColor(230);
-    doc.line(14, 42, 196, 42);
+    doc.line(14, 40, 196, 40);
 
     const rows = (sale.items || []).map((item: any) => [
       item.productName,
@@ -313,7 +301,7 @@ export class Reports implements OnInit {
     ]);
 
     autoTable(doc, {
-      startY: 50,
+      startY: 48,
       head: [['Producto', 'Cant.', 'Precio', 'Subtotal']],
       body: rows,
       headStyles: { fillColor: [99, 102, 241], fontSize: 10 },
@@ -322,7 +310,7 @@ export class Reports implements OnInit {
       margin: { left: 14, right: 14 },
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || 50;
+    const finalY = (doc as any).lastAutoTable.finalY || 48;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -340,7 +328,7 @@ export class Reports implements OnInit {
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(34, 197, 94); // verde, como el "Total" en la UI
+    doc.setTextColor(34, 197, 94);
     doc.text(`Total: ${fmt(sale.total)}`, 14, y + 12);
     doc.setTextColor(0);
 
