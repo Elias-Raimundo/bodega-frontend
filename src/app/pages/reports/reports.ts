@@ -276,57 +276,73 @@ export class Reports implements OnInit {
 
   downloadSalePdf(sale: any) {
     const doc = new jsPDF();
+    const fmt = (n: number) => `$${Number(n).toLocaleString('es-AR')}`;
 
     if (this.company?.logo) {
       try {
         const logoData = this.company.logo.startsWith('data:')
           ? this.company.logo
           : `data:image/png;base64,${this.company.logo}`;
-
         const format = this.getImageFormat(logoData);
-        doc.addImage(logoData, format, 14, 10, 20, 20);
+        doc.addImage(logoData, format, 14, 12, 22, 22);
       } catch (e) {
         console.error('No se pudo agregar el logo al PDF:', e);
       }
     }
 
-    doc.setFontSize(16);
+    doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(this.company?.name || 'El Budagon', 40, 20);
+    doc.text(this.company?.name || 'El Budagon', 42, 22);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100);
-    doc.text(`Venta #${sale.id}`, 40, 27);
-    doc.text(new Date(sale.createdAt).toLocaleString('es-AR'), 40, 32);
+    doc.setTextColor(120);
+    doc.text(`Venta #${sale.id}`, 42, 29);
+    doc.text(new Date(sale.createdAt).toLocaleString('es-AR'), 42, 34);
     doc.setTextColor(0);
+
+    // línea separadora bajo el header
+    doc.setDrawColor(230);
+    doc.line(14, 42, 196, 42);
 
     const rows = (sale.items || []).map((item: any) => [
       item.productName,
       item.quantity,
-      `$${item.price}`,
-      `$${item.quantity * item.price}`
+      fmt(item.price),
+      fmt(item.quantity * item.price)
     ]);
 
     autoTable(doc, {
-      startY: 40,
+      startY: 50,
       head: [['Producto', 'Cant.', 'Precio', 'Subtotal']],
       body: rows,
-      headStyles: { fillColor: [99, 102, 241] }
+      headStyles: { fillColor: [99, 102, 241], fontSize: 10 },
+      bodyStyles: { fontSize: 10 },
+      alternateRowStyles: { fillColor: [245, 245, 250] },
+      margin: { left: 14, right: 14 },
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || 40;
-
-    const paymentsText = sale.payments
-      ?.map((p: any) => `${this.getPaymentMethodLabel(p.method)}: $${p.amount}`)
-      .join(' | ') || '';
+    const finalY = (doc as any).lastAutoTable.finalY || 50;
 
     doc.setFontSize(10);
-    doc.text(paymentsText, 14, finalY + 10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Pagos', 14, finalY + 12);
 
-    doc.setFontSize(13);
+    let y = finalY + 18;
+    (sale.payments || []).forEach((p: any) => {
+      doc.text(this.getPaymentMethodLabel(p.method), 14, y);
+      doc.text(fmt(p.amount), 180, y, { align: 'right' });
+      y += 6;
+    });
+
+    doc.setDrawColor(230);
+    doc.line(14, y + 2, 196, y + 2);
+
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total: $${sale.total}`, 14, finalY + 18);
+    doc.setTextColor(34, 197, 94); // verde, como el "Total" en la UI
+    doc.text(`Total: ${fmt(sale.total)}`, 14, y + 12);
+    doc.setTextColor(0);
 
     doc.save(`venta-${sale.id}.pdf`);
   }

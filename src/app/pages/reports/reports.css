@@ -646,6 +646,47 @@
   color: var(--text-muted);
 }
 
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.modal-actions button {
+  flex: 1;
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.pdf-btn {
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+  color: white;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+.pdf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+}
+
+.close-modal-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.close-modal-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
 .product-line,
 .payment-line {
   display: flex;
