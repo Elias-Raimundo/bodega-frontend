@@ -522,3 +522,131 @@
     flex: 1;
   }
 }
+/* ── TABLA DE PREPARADOS ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: var(--transition);
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+tbody tr.editing {
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: inset 3px 0 0 var(--indigo);
+}
+
+td {
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+td:first-child {
+  font-weight: 700;
+}
+
+td:nth-child(2) {
+  color: var(--text-muted);
+  font-size: 13px;
+  max-width: 320px;
+}
+
+td:nth-child(3),
+td:nth-child(4) {
+  color: var(--emerald);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+td.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+td.actions .edit {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--amber);
+  background: rgba(245, 158, 11, 0.12);
+  transition: var(--transition);
+}
+
+td.actions .edit:hover {
+  background: var(--amber);
+  color: #000;
+}
+
+td.actions .delete {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--rose);
+  background: rgba(244, 63, 94, 0.12);
+  transition: var(--transition);
+}
+
+td.actions .delete:hover {
+  background: var(--rose);
+  color: white;
+}
+
+td.actions .delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    padding: 10px 0;
+  }
+
+  td {
+    padding: 6px 14px;
+  }
+
+  td.actions {
+    justify-content: flex-start;
+    padding-top: 10px;
+  }
+}
