@@ -229,8 +229,11 @@ export class Tables implements OnInit {
       item,
       { headers: this.getHeaders() }
     ).subscribe({
-      next: () => {
-        this.refreshCurrentOrder();
+      next: (res) => {
+        this.selectedOrder = {
+          ...res,
+          items: [...(res.items || [])]
+        };
         this.loadTables();
         this.cdRef.detectChanges();
       },

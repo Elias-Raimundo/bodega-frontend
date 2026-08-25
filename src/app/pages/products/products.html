@@ -20,37 +20,33 @@
         Categorías
       </button>
 
+      <button
+        class="secondary"
+        (click)="showImportModal = true"
+      >
+        Importar CSV
+      </button>
+
     </div>
   </div>
 
-  <!-- IMPORT CSV -->
-  <div class="card import-card">
+  <!-- STATS CARDS -->
+  <div class="stats-cards" *ngIf="stats">
 
-    <div class="import-info">
-      <h3>Importar productos</h3>
-
-      <p>
-        Formato CSV:
-        <strong>name, price, stock, category, description</strong>
-      </p>
+    <div class="card stat-cost-card">
+      <span class="stat-label">📦 Stock a costo</span>
+      <div class="stat-value">${{ stats.costValue | number:'1.2-2' }}</div>
     </div>
 
-    <div class="import-actions">
+    <div class="card stat-sale-card">
+      <span class="stat-label">💲 Stock a precio venta</span>
+      <div class="stat-value">${{ stats.inventoryValue | number:'1.2-2' }}</div>
+    </div>
 
-      <input
-        type="file"
-        accept=".csv"
-        (change)="onImportFileSelected($event)"
-      />
-
-      <button
-        class="primary"
-        (click)="importProducts()"
-        [disabled]="importing"
-      >
-        {{ importing ? 'Importando...' : 'Importar CSV' }}
-      </button>
-
+    <div class="card stat-profit-card">
+      <span class="stat-label">📈 Ganancia potencial</span>
+      <p class="stat-subtitle">Diferencia entre costo y precio de venta</p>
+      <div class="stat-value">${{ (stats.inventoryValue - stats.costValue) | number:'1.2-2' }}</div>
     </div>
 
   </div>
@@ -139,6 +135,7 @@
         <tr>
           <th>Nombre</th>
           <th>Categoría</th>
+          <th>Costo</th>
           <th>Precio</th>
           <th>Stock</th>
           <th></th>
@@ -154,6 +151,8 @@
           <td>
             {{ p.category?.name || 'Sin categoría' }}
           </td>
+
+          <td>${{ p.costPrice | number:'1.0-0' }}</td>
 
           <td>${{ p.price | number:'1.0-0' }}</td>
 
@@ -206,6 +205,16 @@
           min="0"
           placeholder="Precio"
           [class.input-error]="createAttempted && (price === null || price < 0)"
+        />
+      </div>
+
+      <div class="price-input">
+        <span>$</span>
+        <input
+          [(ngModel)]="costPrice"
+          type="number"
+          min="0"
+          placeholder="Costo (opcional)"
         />
       </div>
 
@@ -345,6 +354,16 @@
           [class.input-error]="editAttempted && (editingProduct.price === null || editingProduct.price < 0)"
         />
       </div>
+
+      <div class="price-input">
+        <span>$</span>
+        <input
+          [(ngModel)]="editingProduct.costPrice"
+          type="number"
+          min="0"
+          placeholder="Costo"
+        />
+      </div>
       
         <input
           [(ngModel)]="editingProduct.stock"
@@ -414,6 +433,46 @@
         <button
           class="cancel"
           (click)="editingCategory = null"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+  <!-- IMPORT CSV MODAL -->
+  <div class="modal" *ngIf="showImportModal">
+
+    <div class="modal-content">
+
+      <h3>Importar productos</h3>
+
+      <p>
+        Formato CSV:
+        <strong>name, price, stock, category, description</strong>
+      </p>
+
+      <input
+        type="file"
+        accept=".csv"
+        (change)="onImportFileSelected($event)"
+      />
+
+      <div class="modal-actions">
+
+        <button
+          class="primary"
+          (click)="importProducts()"
+          [disabled]="importing"
+        >
+          {{ importing ? 'Importando...' : 'Importar CSV' }}
+        </button>
+
+        <button
+          class="cancel"
+          (click)="showImportModal = false"
         >
           Cancelar
         </button>

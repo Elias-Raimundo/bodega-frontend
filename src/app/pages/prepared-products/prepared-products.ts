@@ -36,6 +36,7 @@ export class PreparedProducts implements OnInit {
   form = {
     name: '',
     price: 0,
+    costPrice: 0,
     ingredients: [
       {
         productId: null as number | null,
@@ -91,6 +92,7 @@ export class PreparedProducts implements OnInit {
     return {
       name: this.form.name,
       price: this.form.price,
+      costPrice: this.form.costPrice,
       ingredients: this.form.ingredients.map(i => ({
         productId: i.productId,
         quantity: 1 / Number(i.quantity)
@@ -212,6 +214,7 @@ export class PreparedProducts implements OnInit {
     this.form = {
       name: prepared.name,
       price: prepared.price,
+      costPrice: prepared.costPrice || 0,
       ingredients: prepared.ingredients?.map((i: any) => ({
         productId: i.product?.id || null,
         quantity: i.quantity ? 1 / i.quantity : 1,
@@ -266,6 +269,7 @@ export class PreparedProducts implements OnInit {
     this.form = {
       name: '',
       price: 0,
+      costPrice: 0,
       ingredients: [
         {
           productId: null,

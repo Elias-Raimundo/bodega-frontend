@@ -32,6 +32,17 @@
         >
       </div>
 
+      <div class="field">
+        <label>Costo</label>
+
+        <input
+          type="number"
+          min="0"
+          [(ngModel)]="form.costPrice"
+          placeholder="Costo del preparado"
+        >
+      </div>
+
     </div>
 
     <div class="ingredients-box">
@@ -180,7 +191,8 @@
       </div>
 
       <div class="prepared-price">
-        ${{ prepared.price | number:'1.0-0' }}
+        <span class="cost">${{ prepared.costPrice | number:'1.0-0' }}</span>
+        <span class="sale">${{ prepared.price | number:'1.0-0' }}</span>
       </div>
 
       <div class="prepared-actions">

@@ -177,6 +177,67 @@
   background: rgba(99, 102, 241, 0.08);
   border-color: var(--indigo);
 }
+/* ── STATS CARDS ── */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.stats-cards .card {
+  margin-bottom: 0;
+  padding: 20px 22px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  letter-spacing: -0.1px;
+}
+
+.stat-subtitle {
+  margin: -6px 0 10px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+}
+
+.stat-cost-card {
+  border-left: 3px solid var(--indigo);
+}
+
+.stat-sale-card {
+  border-left: 3px solid var(--emerald);
+}
+
+.stat-sale-card .stat-value {
+  color: var(--emerald);
+}
+
+.stat-profit-card {
+  border-left: 3px solid var(--violet);
+}
+
+.stat-profit-card .stat-value {
+  color: var(--violet);
+}
+
+@media (max-width: 1100px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ── FILTERS BAR ── */
 .filters-bar {

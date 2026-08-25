@@ -23,6 +23,7 @@ export class Products implements OnInit {
   editAttempted = false;
   name = '';
   price: number | null = null;
+  costPrice: number | null = null;
   stock: number | null = null;
 
   categories: any[] = [];
@@ -42,12 +43,12 @@ export class Products implements OnInit {
 
   showCreateProductModal = false;
   showCategoriesModal = false;
+  showImportModal = false;
   stockFilter = 'all';
+  stats: any = null;
 
   searchTimeout: any = null;
-
   loadingProducts = false;
-
   selectedImportFile: File | null = null;
   importing = false;
 
@@ -70,6 +71,7 @@ export class Products implements OnInit {
   ngOnInit() {
     this.load();
     this.loadCategories();
+    this.loadStats();
 
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -143,6 +145,18 @@ export class Products implements OnInit {
     });
   }
 
+  loadStats() {
+    this.http.get<any>(`${this.apiUrl}/products/stats`).subscribe({
+      next: (res) => {
+        this.stats = res;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error cargando estadísticas:', err);
+      }
+    });
+  }
+
   create() {
     this.createAttempted = true;
 
@@ -167,6 +181,7 @@ export class Products implements OnInit {
     this.http.post(`${this.apiUrl}/products`, {
       name: this.name,
       price: this.price,
+      costPrice: this.costPrice,
       stock: this.stock,
       categoryId: this.selectedCategoryId
     }).subscribe({
@@ -176,11 +191,13 @@ export class Products implements OnInit {
         this.createAttempted = false;
         this.name = '';
         this.price = null;
+        this.costPrice = null;
         this.stock = null;
         this.selectedCategoryId = null;
         this.showCreateProductModal = false;
         this.productsService.invalidateCache();
         this.load();
+        this.loadStats()
       },
       error: (err) => {
         console.error('Error creando producto:', err);
@@ -204,6 +221,7 @@ export class Products implements OnInit {
         this.toastr.success('Producto eliminado');
         this.productsService.invalidateCache();
         this.load();
+        this.loadStats()
       },
       error: (err) => {
         console.error('Error eliminando producto:', err);
@@ -256,6 +274,7 @@ export class Products implements OnInit {
 
         this.loadCategories();
         this.load();
+        this.loadStats();
       },
       error: (err) => {
         console.error('Error actualizando categoría:', err);
@@ -280,6 +299,7 @@ export class Products implements OnInit {
         this.productsService.invalidateCache();
         this.loadCategories();
         this.load();
+        this.loadStats();
       },
       error: (err) => {
         console.error('Error eliminando categoría:', err);
@@ -313,6 +333,7 @@ export class Products implements OnInit {
     this.http.put(`${this.apiUrl}/products/${this.editingProduct.id}`, {
       name: this.editingProduct.name,
       price: this.editingProduct.price,
+      costPrice: this.editingProduct.costPrice,
       stock: this.editingProduct.stock,
       categoryId: this.editingProduct.categoryId
     }).subscribe({
@@ -323,6 +344,7 @@ export class Products implements OnInit {
         this.editingProduct = null;
         this.productsService.invalidateCache();
         this.load();
+        this.loadStats();
       },
       error: (err) => {
         console.error('Error actualizando producto:', err);
@@ -375,9 +397,11 @@ export class Products implements OnInit {
 
         this.selectedImportFile = null;
         this.importing = false;
+        this.showImportModal = false;
         this.productsService.invalidateCache();
         this.load();
         this.loadCategories();
+        this.loadStats();
         this.cdr.detectChanges();
       },
       error: (err) => {
