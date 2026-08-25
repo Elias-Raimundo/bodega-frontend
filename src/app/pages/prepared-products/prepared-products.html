@@ -144,7 +144,7 @@
 
   </div>
 
-  <!-- LISTA -->
+    <!-- LISTA -->
   <div class="table-card">
 
     <h3>Preparados creados</h3>
@@ -172,49 +172,56 @@
         No hay preparados con ese nombre.
       </div>
 
-      <div
-        class="prepared-row"
-        *ngFor="let prepared of filteredPreparedProducts"
-      [class.editing]="editingId === prepared.id"
-    >
+      <table *ngIf="filteredPreparedProducts.length">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Ingredientes</th>
+            <th>Costo</th>
+            <th>Precio</th>
+            <th></th>
+          </tr>
+        </thead>
 
-      <div class="prepared-info">
+        <tbody>
 
-        <div class="prepared-name">
-          {{ prepared.name }}
-        </div>
+          <tr
+            *ngFor="let prepared of filteredPreparedProducts"
+            [class.editing]="editingId === prepared.id"
+          >
 
-        <div class="prepared-detail">
-          {{ getIngredientText(prepared) }}
-        </div>
+            <td>{{ prepared.name }}</td>
 
-      </div>
+            <td>{{ getIngredientText(prepared) }}</td>
 
-      <div class="prepared-price">
-        <span class="cost">${{ prepared.costPrice | number:'1.0-0' }}</span>
-        <span class="sale">${{ prepared.price | number:'1.0-0' }}</span>
-      </div>
+            <td>${{ prepared.costPrice | number:'1.0-0' }}</td>
 
-      <div class="prepared-actions">
+            <td>${{ prepared.price | number:'1.0-0' }}</td>
 
-        <button
-          class="edit-btn"
-          (click)="editPreparedProduct(prepared)"
-        >
-          Editar
-        </button>
+            <td class="actions">
 
-        <button
-          class="delete-btn"
-          (click)="deletePreparedProduct(prepared.id)"
-          [disabled]="deletingId === prepared.id"
-        >
-          {{ deletingId === prepared.id ? 'Eliminando...' : 'Eliminar' }}
-        </button>
+              <button
+                class="edit"
+                (click)="editPreparedProduct(prepared)"
+              >
+                ✏️
+              </button>
 
-      </div>
+              <button
+                class="delete"
+                (click)="deletePreparedProduct(prepared.id)"
+                [disabled]="deletingId === prepared.id"
+              >
+                🗑️
+              </button>
 
-    </div>
+            </td>
+
+          </tr>
+
+        </tbody>
+      </table>
+
     </ng-container>
 
   </div>
