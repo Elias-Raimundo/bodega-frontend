@@ -434,7 +434,7 @@ export class Products implements OnInit {
   }
 
   countLowStock(): number {
-    return this.products.filter(p => p.stock > 0 && p.stock <= 5).length;
+    return this.products.filter(p => p.stock > 0 && p.stock <= 2).length;
   }
 
   filteredProducts() {
@@ -443,7 +443,7 @@ export class Products implements OnInit {
         let matchStock = true;
 
         if (this.stockFilter === 'low') {
-          matchStock = p.stock > 0 && p.stock <= 5;
+          matchStock = p.stock > 0 && p.stock <= 2;
         }
 
         if (this.stockFilter === 'empty') {
