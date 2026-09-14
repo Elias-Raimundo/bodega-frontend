@@ -49,6 +49,18 @@ export class Tables implements OnInit {
   registeringPartialPayment = false;
   creatingTables = false;
 
+  // NUEVO: reparto de un ítem entre varias mesas
+  splittingItem: any = null;
+  splitTotal = 0;
+  splitShares: {
+    tableId: number;
+    tableName: string;
+    selected: boolean;
+    isOwnTable: boolean;
+    amount: number;
+  }[] = [];
+  splittingInProgress = false;
+
   constructor(
     private http: HttpClient,
     private cdRef: ChangeDetectorRef,
@@ -245,47 +257,9 @@ export class Tables implements OnInit {
   }
 
   increaseItem(item: any) {
-
-    if (item.itemType === 'PRODUCT') {
-      const product = this.products.find(
-        p => p.id === item.productId
-      );
-
-      if (product && item.quantity >= product.stock) {
-        this.toastr.warning('No hay más stock disponible');
-        return;
-      }
-    }
-
-    if (item.itemType === 'PREPARED') {
-      const prepared = this.preparedProducts.find(
-        p => p.id === item.preparedProductId
-      );
-
-      if (!prepared || !prepared.ingredients || prepared.ingredients.length === 0) {
-        this.toastr.warning('Este preparado no tiene ingredientes');
-        return;
-      }
-
-      const newQuantity = item.quantity + 1;
-
-      for (const ingredient of prepared.ingredients) {
-        const product = ingredient.product;
-
-        if (!product) {
-          this.toastr.warning('Ingrediente inválido');
-          return;
-        }
-
-        const stockNeeded = ingredient.quantity * newQuantity;
-
-        if (product.stock < stockNeeded) {
-          this.toastr.warning(`No hay más stock disponible de ${product.name}`);
-          return;
-        }
-      }
-    }
-
+    // Ya no bloqueamos por falta de stock: el backend permite vender
+    // aunque el stock quede en cero o negativo (el cliente no siempre
+    // carga el stock correctamente).
     this.updateItemQuantity(
       item,
       item.quantity + 1
@@ -337,6 +311,136 @@ export class Tables implements OnInit {
         this.toastr.error(this.getErrorMessage(err, 'No se pudo eliminar el producto'));
       }
     });
+  }
+
+  // NUEVO: dividir un ítem (ej. unas papas) entre varias mesas, con
+  // montos iguales o desiguales.
+  openSplitModal(item: any) {
+    if (!this.selectedTable) return;
+
+    this.splittingItem = item;
+    this.splitTotal = Math.round(item.price * item.quantity * 100) / 100;
+
+    this.splitShares = [
+      {
+        tableId: this.selectedTable.id,
+        tableName: `${this.selectedTable.name} (esta mesa)`,
+        selected: true,
+        isOwnTable: true,
+        amount: this.splitTotal
+      },
+      ...this.tables
+        .filter(t => t.id !== this.selectedTable.id)
+        .map(t => ({
+          tableId: t.id,
+          tableName: t.name,
+          selected: false,
+          isOwnTable: false,
+          amount: 0
+        }))
+    ];
+
+    this.cdRef.detectChanges();
+  }
+
+  toggleSplitShare(share: any) {
+    if (share.isOwnTable) return; // la mesa actual siempre participa
+    share.selected = !share.selected;
+    if (!share.selected) {
+      share.amount = 0;
+    }
+  }
+
+  getSplitSelectedShares() {
+    return this.splitShares.filter(s => s.selected);
+  }
+
+  getSplitSum() {
+    return this.getSplitSelectedShares().reduce(
+      (acc, s) => acc + (Number(s.amount) || 0),
+      0
+    );
+  }
+
+  splitSumMatches() {
+    return Math.abs(this.getSplitSum() - this.splitTotal) <= 0.01;
+  }
+
+  // Reparte en partes iguales entre las mesas tildadas, ajustando
+  // centavos de redondeo en la última para que cierre exacto.
+  splitEqually() {
+    const selected = this.getSplitSelectedShares();
+    if (!selected.length) return;
+
+    const equalAmount = Math.floor(
+      (this.splitTotal / selected.length) * 100
+    ) / 100;
+
+    selected.forEach(s => s.amount = equalAmount);
+
+    const assigned = equalAmount * selected.length;
+    const diff = Math.round((this.splitTotal - assigned) * 100) / 100;
+
+    if (diff !== 0) {
+      const last = selected[selected.length - 1];
+      last.amount = Math.round((last.amount + diff) * 100) / 100;
+    }
+
+    this.cdRef.detectChanges();
+  }
+
+  confirmSplit() {
+    if (!this.splittingItem) return;
+
+    const selected = this.getSplitSelectedShares();
+
+    if (selected.length < 2) {
+      this.toastr.warning('Elegí al menos otra mesa para repartir el ítem');
+      return;
+    }
+
+    if (selected.some(s => !s.amount || Number(s.amount) <= 0)) {
+      this.toastr.warning('Cada parte del reparto debe ser mayor a cero');
+      return;
+    }
+
+    if (!this.splitSumMatches()) {
+      this.toastr.warning('La suma de las partes no coincide con el total del ítem');
+      return;
+    }
+
+    if (this.splittingInProgress) return;
+    this.splittingInProgress = true;
+
+    const shares = selected.map(s => ({
+      tableId: s.tableId,
+      amount: Number(s.amount)
+    }));
+
+    this.http.post<any[]>(
+      `${API_URL}/tables/items/${this.splittingItem.id}/split`,
+      { shares },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => {
+        this.splittingInProgress = false;
+        this.toastr.success('Ítem repartido entre las mesas');
+        this.closeSplitModal();
+        this.refreshCurrentOrder();
+        this.loadTables();
+      },
+      error: (err) => {
+        console.error('Error repartiendo ítem:', err);
+        this.splittingInProgress = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo repartir el ítem'));
+      }
+    });
+  }
+
+  closeSplitModal() {
+    this.splittingItem = null;
+    this.splitShares = [];
+    this.splitTotal = 0;
   }
 
   getAlreadyPaid() {

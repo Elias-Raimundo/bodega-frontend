@@ -140,8 +140,8 @@
             <div
               class="add-item-row"
               *ngFor="let product of filteredProducts"
-              [class.disabled]="product.stock <= 0"
-              (click)="product.stock > 0 && addProductToTable(product)"
+              [class.low-stock]="product.stock <= 0"
+              (click)="addProductToTable(product)"
             >
 
               <div>
@@ -212,6 +212,14 @@
               <strong>
                 ${{ item.price * item.quantity }}
               </strong>
+
+              <button
+                class="split-item"
+                title="Dividir entre mesas"
+                (click)="openSplitModal(item); $event.stopPropagation()"
+              >
+                ⚌
+              </button>
 
               <button
                 class="remove-item"
@@ -396,4 +404,96 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL: DIVIDIR ÍTEM ENTRE MESAS -->
+  <div
+    class="modal-overlay"
+    *ngIf="splittingItem"
+  >
+
+    <div class="modal split-modal">
+
+      <div class="modal-header">
+        <h2>Dividir "{{ splittingItem.productName }}"</h2>
+
+        <button
+          class="close-btn"
+          (click)="closeSplitModal()"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p class="split-total-label">
+        Total a repartir: <strong>${{ splitTotal | number:'1.2-2' }}</strong>
+      </p>
+
+      <div class="split-shares-list">
+
+        <div
+          class="split-share-row"
+          *ngFor="let share of splitShares"
+        >
+
+          <label class="split-share-check">
+            <input
+              type="checkbox"
+              [checked]="share.selected"
+              [disabled]="share.isOwnTable"
+              (change)="toggleSplitShare(share)"
+            />
+            {{ share.tableName }}
+          </label>
+
+          <div class="split-share-amount" *ngIf="share.selected">
+            <span>$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="share.amount"
+            />
+          </div>
+
+        </div>
+
+      </div>
+
+      <button
+        class="split-equal-btn"
+        (click)="splitEqually()"
+      >
+        Repartir en partes iguales
+      </button>
+
+      <div
+        class="split-sum-row"
+        [class.mismatch]="!splitSumMatches()"
+      >
+        Repartido: ${{ getSplitSum() | number:'1.2-2' }} / ${{ splitTotal | number:'1.2-2' }}
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          class="primary"
+          [disabled]="splittingInProgress || getSplitSelectedShares().length < 2 || !splitSumMatches()"
+          (click)="confirmSplit()"
+        >
+          {{ splittingInProgress ? 'Repartiendo...' : 'Confirmar reparto' }}
+        </button>
+
+        <button
+          class="cancel"
+          (click)="closeSplitModal()"
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </div>

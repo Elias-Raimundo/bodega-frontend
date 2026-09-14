@@ -91,7 +91,11 @@
         </option>
 
         <option value="empty">
-          Sin stock
+          Sin stock (cero)
+        </option>
+
+        <option value="negative">
+          Stock negativo
         </option>
 
       </select>
@@ -121,6 +125,37 @@
       </select>
 
     </div>
+  </div>
+
+  <!-- ACCESO RÁPIDO -->
+  <div class="quick-access" *ngIf="!loadingProducts">
+
+    <span class="quick-access-label">ACCESO RÁPIDO:</span>
+
+    <button
+      class="stock-pill pill-negative"
+      [class.active]="stockFilter === 'negative'"
+      (click)="setStockFilter('negative')"
+    >
+      Stock negativo <span class="pill-count">{{ countNegativeStock() }}</span>
+    </button>
+
+    <button
+      class="stock-pill pill-empty"
+      [class.active]="stockFilter === 'empty'"
+      (click)="setStockFilter('empty')"
+    >
+      Sin stock <span class="pill-count">{{ countZeroStock() }}</span>
+    </button>
+
+    <button
+      class="stock-pill pill-low"
+      [class.active]="stockFilter === 'low'"
+      (click)="setStockFilter('low')"
+    >
+      Stock bajo <span class="pill-count">{{ countLowStock() }}</span>
+    </button>
+
   </div>
 
   <!-- SKELETON -->

@@ -659,3 +659,92 @@ tbody tr:hover {
     margin-right: 0;
   }
 }
+/* ── ACCESO RÁPIDO (pills de stock) ── */
+.quick-access {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+
+.quick-access-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.stock-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--bg-surface);
+}
+
+.stock-pill .pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pill-negative {
+  color: #fecdd3;
+  background: rgba(244, 63, 94, 0.14);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+.pill-negative .pill-count {
+  background: var(--rose-dark);
+  color: #fff;
+}
+.pill-negative:hover,
+.pill-negative.active {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: var(--rose);
+}
+
+.pill-empty {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.18);
+}
+.pill-empty .pill-count {
+  background: var(--rose);
+  color: #fff;
+}
+.pill-empty:hover,
+.pill-empty.active {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: var(--rose);
+}
+
+.pill-low {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+.pill-low .pill-count {
+  background: var(--amber);
+  color: #1c1917;
+}
+.pill-low:hover,
+.pill-low.active {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--amber);
+}

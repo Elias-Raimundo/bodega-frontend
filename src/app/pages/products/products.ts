@@ -417,6 +417,26 @@ export class Products implements OnInit {
     });
   }
 
+  // NUEVO: acceso rápido de stock (separa negativo, cero y bajo)
+  setStockFilter(filter: string) {
+    this.stockFilter = this.stockFilter === filter ? 'all' : filter;
+    this.search = '';
+    this.selectedFilterCategoryId = null;
+    this.load();
+  }
+
+  countNegativeStock(): number {
+    return this.products.filter(p => p.stock < 0).length;
+  }
+
+  countZeroStock(): number {
+    return this.products.filter(p => p.stock === 0).length;
+  }
+
+  countLowStock(): number {
+    return this.products.filter(p => p.stock > 0 && p.stock <= 5).length;
+  }
+
   filteredProducts() {
     let filtered = this.products.filter(p => {
 
@@ -428,6 +448,10 @@ export class Products implements OnInit {
 
         if (this.stockFilter === 'empty') {
           matchStock = p.stock === 0;
+        }
+
+        if (this.stockFilter === 'negative') {
+          matchStock = p.stock < 0;
         }
 
         return matchStock;

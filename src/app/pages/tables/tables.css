@@ -576,9 +576,12 @@
   font-weight: 800;
 }
 
-.add-item-row.disabled {
-  opacity: 0.3;
-  pointer-events: none;
+/* Ya no bloquea el click (se puede vender sin stock cargado), solo lo
+   marca visualmente para que el mozo sepa que el stock está en cero
+   o negativo. */
+.add-item-row.low-stock span {
+  color: var(--rose);
+  font-weight: 700;
 }
 
 /* ── PEDIDO VACÍO ── */
@@ -967,4 +970,127 @@
   .modal {
     width: 90%;
   }
+}
+/* ── DIVIDIR ÍTEM ENTRE MESAS ── */
+.split-item {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--indigo);
+  font-size: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-item:hover {
+  background: var(--indigo);
+  color: white;
+}
+
+.split-modal {
+  max-width: 440px;
+  width: 100%;
+}
+
+.split-total-label {
+  margin: 4px 0 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.split-total-label strong {
+  color: var(--text-primary);
+}
+
+.split-shares-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+
+.split-share-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.split-share-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.split-share-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-mid);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.split-share-amount span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.split-share-amount input {
+  width: 80px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.split-share-amount input:focus {
+  outline: none;
+}
+
+.split-equal-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-mid);
+  background: transparent;
+  color: var(--indigo);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 12px;
+}
+
+.split-equal-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.split-sum-row {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--emerald);
+  margin-bottom: 16px;
+}
+
+.split-sum-row.mismatch {
+  color: var(--rose);
 }
