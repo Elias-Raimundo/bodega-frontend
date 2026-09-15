@@ -290,11 +290,14 @@
 .table-card {
   height: calc(100vh - 180px);
   overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 10px 6px;
 }
 
 table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-family: 'Inter', system-ui, sans-serif;
 }
@@ -641,6 +644,7 @@ tbody tr:hover {
 
   .table-card {
     height: auto;
+    max-height: 70vh;
   }
 
   .import-card {

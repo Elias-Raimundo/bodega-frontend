@@ -114,7 +114,13 @@
   gap: 2px;
   flex: 1;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.topbar .center::-webkit-scrollbar {
+  display: none;
 }
 
 .topbar a {
@@ -127,6 +133,7 @@
   border-radius: 10px;
   transition: var(--transition);
   white-space: nowrap;
+  flex-shrink: 0;
   letter-spacing: 0.01em;
 }
 
@@ -211,7 +218,7 @@
   display: none;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1200px) {
   .topbar {
     flex-direction: row;
     height: 64px;
@@ -255,6 +262,7 @@
     right: 0;
     bottom: 0;
     width: 260px;
+    max-width: 80vw;
     background: var(--bg-panel);
     border-left: 1px solid var(--border-subtle);
     padding: 80px 20px 20px;
@@ -289,19 +297,15 @@
   }
 }
 
-/* ── Responsive ── */
-@media (max-width: 1100px) {
-  .topbar {
-    padding: 0 16px;
-    gap: 12px;
-  }
-
-  .topbar a {
-    font-size: 12px;
-    padding: 7px 10px;
-  }
-
+@media (max-width: 420px) {
   .company span {
     display: none;
   }
+
+  .topbar {
+    padding: 0 12px;
+  }
 }
+
+/* ── Responsive ── */
+/* (el breakpoint principal de 1200px de arriba resuelve tablet/laptop chico) */

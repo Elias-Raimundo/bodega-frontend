@@ -1,7 +1,29 @@
 <div class="sales-layout">
 
+  <!-- TABS (solo mobile) -->
+  <div class="mobile-tabs">
+    <button
+      type="button"
+      class="mobile-tab-btn"
+      [class.active]="mobileTab === 'products'"
+      (click)="setMobileTab('products')"
+    >
+      Artículos
+    </button>
+
+    <button
+      type="button"
+      class="mobile-tab-btn"
+      [class.active]="mobileTab === 'cart'"
+      (click)="setMobileTab('cart')"
+    >
+      Pedido
+      <span class="tab-badge" *ngIf="cart.length > 0">{{ getCartItemsCount() }}</span>
+    </button>
+  </div>
+
   <!-- IZQUIERDA -->
-  <div class="left-panel">
+  <div class="left-panel" [class.mobile-active]="mobileTab === 'products'">
 
     <h3>Artículos</h3>
 
@@ -80,7 +102,7 @@
   </div>
 
   <!-- DERECHA -->
-  <div class="right-panel">
+  <div class="right-panel" [class.mobile-active]="mobileTab === 'cart'">
 
     <h3>Pedido</h3>
 
@@ -301,5 +323,17 @@
     </div>
 
   </div>
+
+  <!-- BARRA FLOTANTE (solo mobile, visible mientras se navega el catálogo) -->
+  <button
+    type="button"
+    class="floating-cart-bar"
+    *ngIf="cart.length > 0 && mobileTab === 'products'"
+    (click)="setMobileTab('cart')"
+  >
+    <span class="fcb-count">{{ getCartItemsCount() }}</span>
+    <span class="fcb-label">Ver pedido</span>
+    <span class="fcb-total">${{ getTotal() | number:'1.0-0' }}</span>
+  </button>
 
 </div>

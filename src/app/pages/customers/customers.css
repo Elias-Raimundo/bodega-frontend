@@ -718,4 +718,39 @@
   .header h1 {
     font-size: 22px;
   }
+
+  .customer-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .customer-actions {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    flex: 1;
+  }
+
+  .modal-header {
+    flex-wrap: wrap;
+  }
+
+  .movement-row,
+  .sale-item-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .movement-row b,
+  .sale-item-row b {
+    align-self: flex-end;
+  }
+
+  .balance-big {
+    font-size: 34px;
+  }
 }

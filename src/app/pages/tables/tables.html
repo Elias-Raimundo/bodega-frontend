@@ -84,10 +84,32 @@
 
       </div>
 
+      <!-- TABS (solo mobile) -->
+      <div class="mobile-tabs">
+        <button
+          type="button"
+          class="mobile-tab-btn"
+          [class.active]="mobileTableTab === 'items'"
+          (click)="setMobileTableTab('items')"
+        >
+          Agregar consumo
+        </button>
+
+        <button
+          type="button"
+          class="mobile-tab-btn"
+          [class.active]="mobileTableTab === 'order'"
+          (click)="setMobileTableTab('order')"
+        >
+          Pedido
+          <span class="tab-badge" *ngIf="selectedOrder?.items?.length">{{ getOrderItemsCount() }}</span>
+        </button>
+      </div>
+
       <div class="modal-content-grid">
 
         <!-- IZQUIERDA: AGREGAR CONSUMOS -->
-        <div class="add-items-panel">
+        <div class="add-items-panel" [class.mobile-active]="mobileTableTab === 'items'">
 
           <h3>Agregar consumo</h3>
 
@@ -166,6 +188,7 @@
         <!-- DERECHA: PEDIDO -->
         <div
           class="order-panel"
+          [class.mobile-active]="mobileTableTab === 'order'"
           *ngIf="selectedOrder"
         >
 
@@ -402,6 +425,19 @@
 
         </div>
       </div>
+
+      <!-- BARRA FLOTANTE (solo mobile, visible mientras se agregan consumos) -->
+      <button
+        type="button"
+        class="floating-cart-bar"
+        *ngIf="selectedOrder?.items?.length > 0 && mobileTableTab === 'items'"
+        (click)="setMobileTableTab('order')"
+      >
+        <span class="fcb-count">{{ getOrderItemsCount() }}</span>
+        <span class="fcb-label">Ver pedido</span>
+        <span class="fcb-total">${{ getOrderTotal() | number:'1.0-0' }}</span>
+      </button>
+
     </div>
   </div>
 

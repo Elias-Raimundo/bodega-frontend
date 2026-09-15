@@ -940,14 +940,145 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+/* ── Tabs mobile dentro del modal (ocultas en desktop) ── */
+.mobile-tabs {
+  display: none;
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  height: 46px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobile-tab-btn:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-right: none;
+}
+
+.mobile-tab-btn:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.mobile-tab-btn.active {
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+  color: white;
+  border-color: var(--indigo);
+}
+
+.tab-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-tab-btn:not(.active) .tab-badge {
+  background: var(--indigo);
+  color: white;
+}
+
+/* ── Barra flotante de acceso rápido al pedido (mobile) ── */
+.floating-cart-bar {
+  display: none;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 1000px) {
   .large-modal {
     width: 92%;
+    max-height: 92vh;
+  }
+
+  .mobile-tabs {
+    display: flex;
+    gap: 2px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg-panel);
+    padding-bottom: 10px;
+    margin-bottom: 4px;
   }
 
   .modal-content-grid {
     grid-template-columns: 1fr;
+    padding-bottom: 70px; /* deja lugar para la barra flotante */
+  }
+
+  /* En mobile cada panel ocupa el modal completo y se alterna por tab,
+     así el mozo no tiene que recorrer todo el catálogo para llegar al pago. */
+  .add-items-panel,
+  .order-panel {
+    display: none;
+  }
+
+  .add-items-panel.mobile-active,
+  .order-panel.mobile-active {
+    display: block;
+  }
+
+  .floating-cart-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 52px;
+    padding: 0 18px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+    color: white;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .fcb-count {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fcb-label {
+    flex: 1;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .fcb-total {
+    font-size: 16px;
+    font-weight: 900;
   }
 }
 
@@ -969,6 +1100,24 @@
 
   .modal {
     width: 90%;
+  }
+
+  .large-modal {
+    width: 95%;
+    padding: 18px;
+  }
+
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .table-card {
+    padding: 16px;
+  }
+
+  .payment-row {
+    grid-template-columns: 1fr 80px 32px;
   }
 }
 /* ── DIVIDIR ÍTEM ENTRE MESAS ── */

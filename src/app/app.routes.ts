@@ -23,7 +23,6 @@ export const routes: Routes = [
             { path: 'settings', loadComponent: () => import('./pages/settings/settings').then(m => m.Settings) },
             { path: 'sales', loadComponent: () => import('./pages/sales/sales').then(m => m.Sales) },
             { path: 'prepared-products', loadComponent: () => import('./pages/prepared-products/prepared-products').then(m => m.PreparedProducts) },
-            { path: 'sales-history', loadComponent: () => import('./pages/sales-history/sales-history').then(m => m.SalesHistoryComponent) },
             { path: 'tables', loadComponent: () => import('./pages/tables/tables').then(m => m.Tables) },
             { path: 'reports', loadComponent: () => import('./pages/reports/reports').then(m => m.Reports) },
             { path: 'customers', loadComponent: () => import('./pages/customers/customers').then(m => m.Customers) },

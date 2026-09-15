@@ -1431,3 +1431,43 @@
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .reports {
+    padding: 14px;
+    gap: 20px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .filters {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters button {
+    width: 100%;
+  }
+
+  .field {
+    width: 100%;
+  }
+
+  .field input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tabs button {
+    flex: 1;
+    min-width: 90px;
+    padding: 0 10px;
+  }
+}

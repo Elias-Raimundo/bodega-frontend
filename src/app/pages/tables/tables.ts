@@ -174,8 +174,24 @@ export class Tables implements OnInit {
     });
   }
 
+  // Vista activa en mobile dentro del modal de mesa: 'items' (agregar consumo)
+  // o 'order' (pedido/pago). En desktop se muestran ambos paneles siempre.
+  mobileTableTab: 'items' | 'order' = 'items';
+
+  setMobileTableTab(tab: 'items' | 'order') {
+    this.mobileTableTab = tab;
+  }
+
+  getOrderItemsCount() {
+    return (this.selectedOrder?.items || []).reduce(
+      (acc: number, i: any) => acc + i.quantity,
+      0
+    );
+  }
+
   openTable(table: any) {
     this.selectedTable = table;
+    this.mobileTableTab = 'items';
 
     this.http.get<any>(
       `${API_URL}/tables/${table.id}/order`,

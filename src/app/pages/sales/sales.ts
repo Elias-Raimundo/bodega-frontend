@@ -39,6 +39,18 @@ export class Sales implements OnInit {
 
   searchTimeout: any = null;
 
+  // Vista activa en mobile: 'products' (catálogo) o 'cart' (pedido/pago).
+  // En desktop ambos paneles se muestran siempre (ver sales.css).
+  mobileTab: 'products' | 'cart' = 'products';
+
+  setMobileTab(tab: 'products' | 'cart') {
+    this.mobileTab = tab;
+  }
+
+  getCartItemsCount() {
+    return this.cart.reduce((acc, p) => acc + p.quantity, 0);
+  }
+
   payments = [
     {
       method: 'CASH',

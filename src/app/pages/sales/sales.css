@@ -760,6 +760,66 @@ option {
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
 }
 
+/* ── Tabs mobile (ocultas en desktop) ── */
+.mobile-tabs {
+  display: none;
+}
+
+.mobile-tab-btn {
+  flex: 1;
+  height: 46px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobile-tab-btn:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-right: none;
+}
+
+.mobile-tab-btn:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.mobile-tab-btn.active {
+  background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+  color: white;
+  border-color: var(--indigo);
+}
+
+.tab-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-tab-btn:not(.active) .tab-badge {
+  background: var(--indigo);
+  color: white;
+}
+
+/* ── Barra flotante de acceso rápido al pedido (mobile) ── */
+.floating-cart-bar {
+  display: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 700px) {
   .quick-customer {
@@ -772,12 +832,118 @@ option {
 
 @media (max-width: 1100px) {
   .sales-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     height: auto;
+    min-height: calc(100vh - 90px);
     overflow: visible;
+    padding-bottom: 90px; /* deja lugar para la barra flotante */
   }
+
+  .mobile-tabs {
+    display: flex;
+    gap: 2px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg-base);
+    padding-bottom: 8px;
+  }
+
+  /* En mobile cada panel ocupa toda la pantalla y se alterna por tab,
+     así el usuario no tiene que recorrer todo el catálogo para llegar al pago. */
+  .left-panel,
+  .right-panel {
+    display: none;
+    flex: 1;
+  }
+
+  .left-panel.mobile-active,
+  .right-panel.mobile-active {
+    display: flex;
+  }
+
+  .left-panel.mobile-active {
+    min-height: 60vh;
+  }
+
   .right-panel {
     min-height: 520px;
     max-height: none;
+  }
+
+  .right-panel.mobile-active {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Barra flotante con resumen del pedido y acceso directo al pago */
+  .floating-cart-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    height: 56px;
+    padding: 0 18px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+    color: white;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.45);
+    z-index: 30;
+  }
+
+  .fcb-count {
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.25);
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fcb-label {
+    flex: 1;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .fcb-total {
+    font-size: 17px;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 480px) {
+  .sales-layout {
+    padding: 12px;
+    padding-bottom: 90px;
+  }
+
+  .left-panel,
+  .right-panel {
+    padding: 16px;
+  }
+
+  h3 {
+    font-size: 19px;
+  }
+
+  .payment-row {
+    grid-template-columns: 1fr 90px 34px;
+  }
+
+  .total {
+    font-size: 26px;
   }
 }

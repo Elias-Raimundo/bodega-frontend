@@ -522,6 +522,21 @@
     flex: 1;
   }
 }
+
+@media (max-width: 480px) {
+  .prepared-products {
+    padding: 14px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .form-card,
+  .table-card {
+    padding: 16px;
+  }
+}
 /* ── TABLA DE PREPARADOS ── */
 table {
   width: 100%;
