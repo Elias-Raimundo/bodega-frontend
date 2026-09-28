@@ -56,6 +56,18 @@ export class CompanyService {
     return localStorage.getItem('company_logo');
   }
 
+  // Al cerrar sesión: borra todo lo de la empresa anterior para que el
+  // próximo usuario que entre en esta PC no vea su logo, colores ni carrito.
+  clear() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('company');
+    localStorage.removeItem('company_logo');
+    localStorage.removeItem('sales_cart');
+    this.companySubject.next(null);
+    document.documentElement.style.removeProperty('--primary-color');
+    document.body.classList.remove('dark');
+  }
+
   // Llamar al iniciar la app para rehidratar el logo en memoria
   rehydrate() {
     const company = JSON.parse(localStorage.getItem('company') || 'null');

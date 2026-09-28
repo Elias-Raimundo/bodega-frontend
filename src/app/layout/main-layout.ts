@@ -58,7 +58,7 @@ export class MainLayout implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    this.companyService.clear();
     this.productsService.invalidateCache(); 
     this.preparedProductsService.invalidateCache();
     this.router.navigate(['/login']);
