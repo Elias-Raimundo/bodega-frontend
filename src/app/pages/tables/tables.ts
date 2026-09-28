@@ -48,6 +48,7 @@ export class Tables implements OnInit {
   deletingTableId: number | null = null;
   registeringPartialPayment = false;
   creatingTables = false;
+  openingTableId: number | null = null;
 
   // NUEVO: reparto de un ítem entre varias mesas
   splittingItem: any = null;
@@ -190,6 +191,11 @@ export class Tables implements OnInit {
   }
 
   openTable(table: any) {
+    // Evita que un doble clic mande dos pedidos a la vez y el backend
+    // cree dos pedidos abiertos para la misma mesa.
+    if (this.openingTableId !== null) return;
+    this.openingTableId = table.id;
+
     this.selectedTable = table;
     this.mobileTableTab = 'items';
 
@@ -198,11 +204,13 @@ export class Tables implements OnInit {
       { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
+        this.openingTableId = null;
         this.selectedOrder = res;
         this.loadTables();
         this.cdRef.detectChanges();
       },
       error: (err) => {
+        this.openingTableId = null;
         console.error('Error abriendo mesa:', err);
         this.toastr.error(this.getErrorMessage(err, 'No se pudo abrir la mesa'));
         // Si falló la apertura, no dejamos el modal "colgado" con una mesa
