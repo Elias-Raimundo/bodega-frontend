@@ -884,6 +884,21 @@
   color: var(--text-primary);
 }
 
+/* ── ÍTEM COMPARTIDO ENTRE MESAS ── */
+.shared-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-color, #3b82f6);
+  background: color-mix(in srgb, var(--primary-color, #3b82f6) 12%, transparent);
+}
+
 /* ── FILA RESUMEN ── */
 .summary-row {
   display: flex;

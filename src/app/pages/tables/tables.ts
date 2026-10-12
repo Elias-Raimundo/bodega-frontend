@@ -337,6 +337,12 @@ export class Tables implements OnInit {
     });
   }
 
+  // Nombre limpio: los ítems divididos con la versión anterior
+  // tenían " (compartido)" pegado al nombre; ahora eso lo muestra la etiqueta.
+  getItemDisplayName(item: any): string {
+    return (item.productName || '').replace(/\s*\(compartido\)\s*$/, '');
+  }
+
   // NUEVO: dividir un ítem (ej. unas papas) entre varias mesas, con
   // montos iguales o desiguales.
   openSplitModal(item: any) {

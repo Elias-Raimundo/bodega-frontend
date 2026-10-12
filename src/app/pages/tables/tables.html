@@ -209,10 +209,15 @@
             <div class="order-item-info">
 
               <span>
-                {{ item.productName }}
+                {{ getItemDisplayName(item) }}
               </span>
 
-              <div class="qty">
+              <!-- Ítem dividido entre mesas: se muestra la etiqueta en vez de +/- -->
+              <small class="shared-badge" *ngIf="item.linkedGroupId">
+                ⚌ Compartido{{ item.splitParts ? ' entre ' + item.splitParts + ' mesas' : '' }}
+              </small>
+
+              <div class="qty" *ngIf="!item.linkedGroupId">
 
                 <button (click)="decreaseItem(item)">
                   -
@@ -237,6 +242,7 @@
               </strong>
 
               <button
+                *ngIf="!item.linkedGroupId"
                 class="split-item"
                 title="Dividir entre mesas"
                 (click)="openSplitModal(item); $event.stopPropagation()"
