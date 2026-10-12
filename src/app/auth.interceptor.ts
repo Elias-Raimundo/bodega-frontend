@@ -31,6 +31,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // 401 = el servidor rechazó el token (vencido o inválido).
       // Cerramos la sesión y mandamos al login con un aviso claro.
       if (err.status === 401 && !isAuthRequest) {
+
+        // Si ya no hay sesión (el usuario cerró sesión) o ya estamos en el
+        // login, el 401 es esperable: lo ignoramos sin avisos ni redirecciones.
+        const hadSession = !!token && token !== 'undefined';
+        const onPublicPage = ['/login', '/register', '/forgot-password']
+          .some(p => router.url.startsWith(p));
+
+        if (!hadSession || onPublicPage) {
+          return EMPTY;
+        }
+
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           companyService.clear();

@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -60,6 +61,8 @@ export class Products implements OnInit {
   updatingCategory = false;
   deletingCategoryId: number | null = null;
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -73,8 +76,16 @@ export class Products implements OnInit {
     this.loadCategories();
     this.loadStats();
 
+    // Recarga la lista si se vuelve a tocar "Productos" estando en esta página.
+    // takeUntilDestroyed: la suscripción se corta al salir de la pantalla.
+    // Antes quedaba viva para siempre y seguía pidiendo productos en
+    // cualquier otra pantalla (incluso después de cerrar sesión).
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(event => event.urlAfterRedirects.startsWith('/products')),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe(() => {
         this.load();
       });
