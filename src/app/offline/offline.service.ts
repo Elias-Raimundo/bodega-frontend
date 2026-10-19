@@ -9,8 +9,9 @@ import {
   HttpRequest,
   HttpResponse
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, TimeoutError, firstValueFrom, of, throwError } from 'rxjs';
-import { catchError, tap, timeout } from 'rxjs/operators';
+import { BehaviorSubject, Observable, TimeoutError, firstValueFrom, from, of, throwError } from 'rxjs';
+import { catchError, switchMap, tap, timeout } from 'rxjs/operators';
+import { OfflineStore } from './offline-store';
 import { ToastrService } from 'ngx-toastr';
 
 /*
@@ -36,7 +37,6 @@ const REQUEST_TIMEOUT = 30000;
 const PING_INTERVAL = 15000;
 const SNAPSHOT_INTERVAL = 60000;
 const CATALOG_INTERVAL = 5 * 60000;
-const MAX_CACHE_ENTRY = 400_000; // caracteres
 
 export interface OfflineStatus {
   online: boolean;
@@ -61,6 +61,8 @@ interface QueuedOp {
 export class OfflineService {
 
   private injector = inject(Injector);
+  private store = new OfflineStore();
+  private lastWriteErrorToast = 0;
   private online = typeof navigator === 'undefined' ? true : navigator.onLine;
   private syncing = false;
   private syncError: { message: string; label: string } | null = null;
@@ -89,6 +91,22 @@ export class OfflineService {
   start() {
     if (this.started) return;
     this.started = true;
+
+    this.store.onWriteError = () => {
+      // Como mucho un aviso por minuto
+      if (Date.now() - this.lastWriteErrorToast < 60000) return;
+      this.lastWriteErrorToast = Date.now();
+      this.toastr.error(
+        'No se pudo guardar en esta computadora. Si se corta internet, lo que hagas puede no quedar guardado.',
+        'Error de almacenamiento',
+        { timeOut: 10000 }
+      );
+    };
+
+    this.store.ready.then(() => this.afterStoreReady());
+  }
+
+  private afterStoreReady() {
 
     window.addEventListener('online', () => this.checkConnection());
     window.addEventListener('offline', () => this.markOffline());
@@ -188,6 +206,11 @@ export class OfflineService {
   // ───────────────────────── Entrada desde el interceptor ─────────────────────────
 
   handle(req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> {
+    // Hasta que no termine de cargar lo guardado no se puede decidir nada
+    return from(this.store.ready).pipe(switchMap(() => this.handleNow(req, next)));
+  }
+
+  private handleNow(req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> {
     // Si el navegador ya sabe que no hay red, ni se intenta
     if (this.online && typeof navigator !== 'undefined' && navigator.onLine === false) {
       this.markOffline();
@@ -1057,13 +1080,7 @@ export class OfflineService {
   }
 
   private saveCache(path: string, body: any) {
-    try {
-      const json = JSON.stringify(body);
-      if (json.length > MAX_CACHE_ENTRY) return;
-      localStorage.setItem(this.prefix() + 'get:' + path, json);
-    } catch {
-      // Sin lugar o sin acceso al almacenamiento: se ignora
-    }
+    this.store.set(this.prefix() + 'get:' + path, body);
   }
 
   // ───────────────────────── Almacenamiento ─────────────────────────
@@ -1087,20 +1104,11 @@ export class OfflineService {
   }
 
   private read<T>(name: string, fallback: T): T {
-    try {
-      const raw = localStorage.getItem(this.prefix() + name);
-      return raw == null ? fallback : JSON.parse(raw);
-    } catch {
-      return fallback;
-    }
+    return this.store.get<T>(this.prefix() + name, fallback);
   }
 
   private write(name: string, value: any) {
-    try {
-      localStorage.setItem(this.prefix() + name, JSON.stringify(value));
-    } catch {
-      // ignorado
-    }
+    this.store.set(this.prefix() + name, value);
   }
 
   private readQueue(): QueuedOp[] {
