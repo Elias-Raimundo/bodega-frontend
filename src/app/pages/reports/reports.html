@@ -395,7 +395,7 @@
 
   <!-- MODAL VENTA -->
   <div class="modal-overlay" *ngIf="selectedSale">
-    <div class="modal">
+    <div class="modal sale-modal">
 
       <div class="modal-header">
         <h3>Venta #{{ selectedSale.id }}</h3>
@@ -403,6 +403,10 @@
       </div>
 
       <div class="modal-date">{{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+
+      <!-- Parte con scroll: productos, total y pagos.
+           El encabezado y los botones quedan siempre visibles. -->
+      <div class="modal-body">
 
       <div class="modal-section">
         <h4>Productos</h4>
@@ -425,12 +429,15 @@
           </div>
           <div>${{ payment.amount | number:'1.0-0' }}</div>
         </div>
-        <div class="modal-actions">
-          <button class="pdf-btn" (click)="downloadSalePdf(selectedSale)">
-            📄 Descargar PDF
-          </button>
-          <button class="close-modal-btn" (click)="closeSale()">Cerrar</button>
-        </div>
+      </div>
+
+      </div>
+
+      <div class="modal-actions">
+        <button class="pdf-btn" (click)="downloadSalePdf(selectedSale)">
+          📄 Descargar PDF
+        </button>
+        <button class="close-modal-btn" (click)="closeSale()">Cerrar</button>
       </div>
 
     </div>
