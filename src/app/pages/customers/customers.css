@@ -300,7 +300,10 @@
   flex-direction: column;
   gap: 14px;
   position: relative;
-  overflow: hidden;
+  /* Antes había "overflow: hidden", que anulaba el scroll de arriba y
+     cortaba el historial: solo se veían los primeros movimientos.
+     overflow-x: hidden mantiene recortado el brillo decorativo del borde. */
+  overflow-x: hidden;
 }
 
 .modal::before {
