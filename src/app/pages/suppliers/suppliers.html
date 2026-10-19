@@ -181,7 +181,15 @@
         </strong>
       </div>
 
-      <h3>Nueva factura</h3>
+      <div class="purchase-cta">
+        <div>
+          <strong>¿Le compraste mercadería?</strong>
+          <span>Cargá los productos y se actualiza el stock y los costos.</span>
+        </div>
+        <button class="primary" (click)="openPurchase()">🛒 Cargar compra</button>
+      </div>
+
+      <h3>Nueva factura (solo monto)</h3>
 
       <div class="invoice-form">
 
@@ -252,6 +260,10 @@
             {{ invoice.description }}
           </small>
 
+          <small class="invoice-items" *ngIf="invoice.items?.length">
+            🛒 {{ invoiceItemsSummary(invoice) }}
+          </small>
+
         </div>
 
         <div class="invoice-values">
@@ -303,6 +315,158 @@
 
         </div>
 
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL COMPRA CON PRODUCTOS -->
+  <div class="modal-overlay purchase-overlay" *ngIf="showPurchase && selectedSupplier">
+    <div class="modal purchase-modal">
+
+      <div class="modal-header">
+        <div>
+          <h3>Nueva compra</h3>
+          <span>{{ selectedSupplier.name }}</span>
+        </div>
+        <button class="close-btn" (click)="closePurchase()">✕</button>
+      </div>
+
+      <div class="purchase-head">
+        <label>
+          <span>Nº de factura</span>
+          <input type="text" [(ngModel)]="purchaseForm.invoiceNumber" placeholder="Opcional" />
+        </label>
+        <label>
+          <span>Fecha</span>
+          <input type="date" [(ngModel)]="purchaseForm.invoiceDate" />
+        </label>
+        <label>
+          <span>Descripción</span>
+          <input type="text" [(ngModel)]="purchaseForm.description" placeholder="Opcional" />
+        </label>
+      </div>
+
+      <!-- Buscador de productos -->
+      <div class="purchase-search">
+        <input
+          type="text"
+          [(ngModel)]="purchaseSearch"
+          (ngModelChange)="onPurchaseSearch()"
+          (keydown.enter)="purchaseResults.length ? addExistingLine(purchaseResults[0]) : (purchaseExactMatch() ? null : addNewLine())"
+          [placeholder]="loadingPurchaseData ? 'Cargando productos…' : 'Buscá un producto para agregar…'"
+          [disabled]="loadingPurchaseData"
+        />
+
+        <div class="search-results" *ngIf="purchaseSearch.trim()">
+          <button class="search-result" *ngFor="let p of purchaseResults" (click)="addExistingLine(p)">
+            <span>{{ p.name }}</span>
+            <small>Stock {{ p.stock | number:'1.0-2' }} · Costo ${{ (p.costPrice || 0) | number:'1.0-2' }} · Venta ${{ p.price | number:'1.0-0' }}</small>
+          </button>
+          <button class="search-result create" *ngIf="!purchaseExactMatch()" (click)="addNewLine()">
+            <span>+ Crear producto nuevo "{{ purchaseSearch.trim() }}"</span>
+            <small>Se crea al guardar la compra</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- Renglones -->
+      <div class="purchase-empty" *ngIf="!purchaseLines.length">
+        Todavía no agregaste productos. Buscalos arriba por nombre.
+      </div>
+
+      <div class="purchase-lines" *ngIf="purchaseLines.length">
+        <div class="purchase-line header">
+          <span>Producto</span>
+          <span>Cantidad</span>
+          <span>Costo unit.</span>
+          <span>Subtotal</span>
+          <span>Precio venta</span>
+          <span></span>
+        </div>
+
+        <div class="purchase-line" *ngFor="let line of purchaseLines; let i = index">
+
+          <div class="pl-product">
+            <strong>{{ line.name }}</strong>
+            <span class="badge-new" *ngIf="line.isNew">Nuevo</span>
+            <small *ngIf="!line.isNew">Stock actual: {{ line.stock | number:'1.0-2' }}</small>
+            <select *ngIf="line.isNew" [(ngModel)]="line.categoryId">
+              <option [ngValue]="null">Sin categoría</option>
+              <option *ngFor="let c of purchaseCategories" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+
+          <div class="pl-field">
+            <label class="pl-mobile-label">Cantidad</label>
+            <input type="number" min="0" [(ngModel)]="line.quantity" placeholder="0" />
+          </div>
+
+          <div class="pl-field">
+            <label class="pl-mobile-label">Costo unit.</label>
+            <input type="number" min="0" [(ngModel)]="line.unitCost" placeholder="$" />
+            <small
+              *ngIf="costChanged(line)"
+              class="cost-diff"
+              [class.up]="line.unitCost! > line.oldCost"
+              [class.down]="line.unitCost! < line.oldCost"
+            >
+              {{ line.unitCost! > line.oldCost ? '▲' : '▼' }} antes ${{ line.oldCost | number:'1.0-2' }}
+            </small>
+          </div>
+
+          <div class="pl-subtotal">
+            <label class="pl-mobile-label">Subtotal</label>
+            ${{ lineSubtotal(line) | number:'1.0-2' }}
+          </div>
+
+          <div class="pl-field">
+            <label class="pl-mobile-label">Precio venta</label>
+            <input type="number" min="0" [(ngModel)]="line.salePrice" [placeholder]="line.isNew ? 'Obligatorio' : '$'" />
+            <button
+              class="suggestion"
+              *ngIf="suggestedPrice(line) != null && suggestedPrice(line) !== line.salePrice"
+              (click)="applySuggestion(line)"
+              title="Mantiene el margen que tenía el producto"
+            >
+              Mantener margen ({{ previousMargin(line) }}%): ${{ suggestedPrice(line) | number:'1.0-0' }}
+            </button>
+            <small class="price-kept" *ngIf="!line.isNew && line.oldPrice != null && line.salePrice !== line.oldPrice">
+              antes ${{ line.oldPrice | number:'1.0-0' }}
+            </small>
+          </div>
+
+          <button class="pl-remove" (click)="removeLine(i)" title="Quitar">✕</button>
+        </div>
+      </div>
+
+      <div class="purchase-tools" *ngIf="hasSuggestions()">
+        <span>Subieron o bajaron costos.</span>
+        <select [(ngModel)]="purchaseRoundTo">
+          <option [ngValue]="1">Redondear al peso</option>
+          <option [ngValue]="10">Redondear a $10</option>
+          <option [ngValue]="50">Redondear a $50</option>
+          <option [ngValue]="100">Redondear a $100</option>
+        </select>
+        <button class="secondary-btn" (click)="applyAllSuggestions()">Mantener el margen en todos</button>
+      </div>
+
+      <div class="purchase-footer">
+        <div class="purchase-total">
+          <span>Total de la compra</span>
+          <strong>${{ purchaseTotal() | number:'1.0-2' }}</strong>
+        </div>
+        <label class="purchase-paid">
+          <span>Pagado ahora</span>
+          <input type="number" min="0" [(ngModel)]="purchaseForm.paidAmount" placeholder="0" />
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="primary" (click)="savePurchase()" [disabled]="savingPurchase || !purchaseLines.length">
+          {{ savingPurchase ? 'Guardando…' : 'Guardar compra' }}
+        </button>
+        <button class="cancel" (click)="closePurchase()" [disabled]="savingPurchase">Cancelar</button>
       </div>
 
     </div>

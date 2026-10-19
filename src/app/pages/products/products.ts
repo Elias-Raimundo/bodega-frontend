@@ -47,14 +47,19 @@ export class Products implements OnInit {
   showCategoriesModal = false;
   showImportModal = false;
 
-  // Aumento de precios en masa
+  // Actualización de precios en masa
   showBulkPriceModal = false;
-  bulkSelection: any = 'ALL';          // 'ALL', 'PREPARED' o el id de una categoría
-  bulkPercent: number | null = null;
+  bulkTarget: 'PRODUCTS' | 'PREPARED' = 'PRODUCTS';
+  bulkFilterCategory: any = 'ALL';
+  bulkSearch = '';
+  bulkSelected = new Set<number>();
+  bulkMode: 'PERCENT' | 'AMOUNT' = 'PERCENT';
+  bulkValue: number | null = null;
+  bulkApplyTo: 'PRICE' | 'COST' | 'BOTH' = 'PRICE';
   bulkRoundTo = 50;
-  bulkPreview: { name: string; oldPrice: number; newPrice: number }[] = [];
   bulkAllProducts: any[] = [];
   bulkAllPrepared: any[] = [];
+  bulkVisible: any[] = [];
   bulkLoading = false;
   applyingBulk = false;
   stockFilter = 'all';
@@ -550,30 +555,35 @@ export class Products implements OnInit {
     return Number(value);
   }
 
-  // ───────── Aumento de precios en masa ─────────
+  // ───────── Actualización de precios en masa ─────────
 
   openBulkPrice() {
     this.showBulkPriceModal = true;
-    this.bulkSelection = 'ALL';
-    this.bulkPercent = null;
+    this.bulkTarget = 'PRODUCTS';
+    this.bulkFilterCategory = 'ALL';
+    this.bulkSearch = '';
+    this.bulkSelected = new Set();
+    this.bulkMode = 'PERCENT';
+    this.bulkValue = null;
+    this.bulkApplyTo = 'PRICE';
     this.bulkRoundTo = 50;
-    this.bulkPreview = [];
+    this.bulkVisible = [];
     this.bulkLoading = true;
 
     // Listas completas y actualizadas (la tabla puede estar filtrada)
     this.productsService.getProducts('', null, true).subscribe({
       next: (res) => {
-        this.bulkAllProducts = res;
+        this.bulkAllProducts = [...res].sort((a, b) => a.name.localeCompare(b.name));
         this.preparedProductsService.getPreparedProducts(true).subscribe({
           next: (prepared) => {
-            this.bulkAllPrepared = prepared;
+            this.bulkAllPrepared = [...prepared].sort((a, b) => a.name.localeCompare(b.name));
             this.bulkLoading = false;
-            this.updateBulkPreview();
+            this.updateBulkView();
           },
           error: () => {
             this.bulkAllPrepared = [];
             this.bulkLoading = false;
-            this.updateBulkPreview();
+            this.updateBulkView();
           }
         });
       },
@@ -588,71 +598,102 @@ export class Products implements OnInit {
   closeBulkPrice() {
     if (this.applyingBulk) return;
     this.showBulkPriceModal = false;
-    this.bulkPreview = [];
   }
 
-  // Misma fórmula que el backend: precio * (1 + %), redondeado hacia arriba
-  calculateNewPrice(price: number, percent: number, roundTo: number): number {
-    let raw = price * (1 + percent / 100);
-    raw = Math.round(raw * 100) / 100;
-    const result = roundTo > 1 ? Math.ceil(raw / roundTo) * roundTo : Math.ceil(raw);
-    return Math.max(result, 0);
+  setBulkTarget(target: 'PRODUCTS' | 'PREPARED') {
+    if (this.bulkTarget === target) return;
+    this.bulkTarget = target;
+    this.bulkSelected = new Set();
+    this.bulkFilterCategory = 'ALL';
+    this.bulkSearch = '';
+    this.updateBulkView();
   }
 
-  bulkPercentIsValid(): boolean {
-    const p = Number(this.bulkPercent);
-    return this.bulkPercent !== null && !isNaN(p) && p !== 0 && p >= -90 && p <= 500;
-  }
+  // Lista visible según categoría y búsqueda (solo filtra, no selecciona)
+  updateBulkView() {
+    const search = this.bulkSearch.trim().toLowerCase();
+    let list = this.bulkTarget === 'PREPARED' ? this.bulkAllPrepared : this.bulkAllProducts;
 
-  updateBulkPreview() {
-    if (!this.bulkPercentIsValid()) {
-      this.bulkPreview = [];
-      this.cdr.detectChanges();
-      return;
+    if (this.bulkTarget === 'PRODUCTS' && this.bulkFilterCategory !== 'ALL') {
+      list = list.filter(p => (p.category?.id ?? null) === this.bulkFilterCategory);
+    }
+    if (search) {
+      list = list.filter(p => (p.name || '').toLowerCase().includes(search));
     }
 
-    const percent = Number(this.bulkPercent);
-    const roundTo = Number(this.bulkRoundTo);
-
-    let items: any[];
-    if (this.bulkSelection === 'PREPARED') {
-      items = this.bulkAllPrepared;
-    } else if (this.bulkSelection === 'ALL') {
-      items = this.bulkAllProducts;
-    } else {
-      items = this.bulkAllProducts.filter(p => p.category?.id === this.bulkSelection);
-    }
-
-    this.bulkPreview = items
-      .filter(i => i.price != null)
-      .map(i => ({
-        name: i.name,
-        oldPrice: Number(i.price),
-        newPrice: this.calculateNewPrice(Number(i.price), percent, roundTo)
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
+    this.bulkVisible = list;
     this.cdr.detectChanges();
   }
 
+  toggleBulkItem(id: number) {
+    if (this.bulkSelected.has(id)) this.bulkSelected.delete(id);
+    else this.bulkSelected.add(id);
+  }
+
+  allVisibleSelected(): boolean {
+    return this.bulkVisible.length > 0 && this.bulkVisible.every(p => this.bulkSelected.has(p.id));
+  }
+
+  toggleAllVisible() {
+    if (this.allVisibleSelected()) {
+      this.bulkVisible.forEach(p => this.bulkSelected.delete(p.id));
+    } else {
+      this.bulkVisible.forEach(p => this.bulkSelected.add(p.id));
+    }
+  }
+
+  clearBulkSelection() {
+    this.bulkSelected = new Set();
+  }
+
+  bulkValueIsValid(): boolean {
+    const v = Number(this.bulkValue);
+    if (this.bulkValue === null || isNaN(v) || v === 0) return false;
+    return this.bulkMode === 'PERCENT' ? v >= -90 && v <= 500 : Math.abs(v) <= 100_000_000;
+  }
+
+  bulkChangesPrice() {
+    return this.bulkApplyTo === 'PRICE' || this.bulkApplyTo === 'BOTH';
+  }
+
+  bulkChangesCost() {
+    return this.bulkApplyTo === 'COST' || this.bulkApplyTo === 'BOTH';
+  }
+
+  // Mismas fórmulas que el backend
+  private bulkApply(base: number): number {
+    const v = Number(this.bulkValue);
+    const raw = this.bulkMode === 'AMOUNT' ? base + v : base * (1 + v / 100);
+    return Math.round(raw * 100) / 100;
+  }
+
+  bulkNewPrice(price: number): number {
+    const raw = this.bulkApply(Number(price) || 0);
+    const r = Number(this.bulkRoundTo);
+    return Math.max(r > 1 ? Math.ceil(raw / r) * r : Math.ceil(raw), 0);
+  }
+
+  bulkNewCost(cost: number): number {
+    return Math.max(this.bulkApply(Number(cost) || 0), 0);
+  }
+
   applyBulkPrice() {
-    if (this.applyingBulk || !this.bulkPreview.length || !this.bulkPercentIsValid()) return;
+    if (this.applyingBulk || !this.bulkSelected.size || !this.bulkValueIsValid()) return;
 
     this.applyingBulk = true;
 
-    const isPrepared = this.bulkSelection === 'PREPARED';
-
     this.http.post<any>(`${this.apiUrl}/products/bulk-price`, {
-      target: isPrepared ? 'PREPARED' : 'PRODUCTS',
-      categoryId: isPrepared || this.bulkSelection === 'ALL' ? null : this.bulkSelection,
-      percent: Number(this.bulkPercent),
+      target: this.bulkTarget,
+      ids: Array.from(this.bulkSelected),
+      mode: this.bulkMode,
+      value: Number(this.bulkValue),
+      applyTo: this.bulkApplyTo,
       roundTo: Number(this.bulkRoundTo)
     }).subscribe({
       next: (res) => {
         this.applyingBulk = false;
-        this.toastr.success(`Se actualizaron ${res?.updated ?? this.bulkPreview.length} precios`);
+        this.toastr.success(`Se actualizaron ${res?.updated ?? this.bulkSelected.size} ${this.bulkTarget === 'PREPARED' ? 'tragos' : 'productos'}`);
         this.showBulkPriceModal = false;
-        this.bulkPreview = [];
         this.productsService.invalidateCache();
         this.preparedProductsService.invalidateCache();
         this.load(this.search, this.selectedFilterCategoryId, true);

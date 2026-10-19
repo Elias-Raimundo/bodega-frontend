@@ -31,7 +31,7 @@
         class="secondary"
         (click)="openBulkPrice()"
       >
-        % Aumentar precios
+        % Actualizar precios
       </button>
 
     </div>
@@ -223,36 +223,49 @@
     </table>
   </div>
 
-  <!-- AUMENTO DE PRECIOS EN MASA -->
+  <!-- ACTUALIZACIÓN DE PRECIOS EN MASA -->
   <div class="modal" *ngIf="showBulkPriceModal">
     <div class="modal-content bulk-modal">
 
-      <h3>Aumentar precios</h3>
+      <div class="bulk-top">
+        <h3>Actualizar precios</h3>
+        <div class="bulk-tabs">
+          <button [class.active]="bulkTarget === 'PRODUCTS'" (click)="setBulkTarget('PRODUCTS')">Productos</button>
+          <button [class.active]="bulkTarget === 'PREPARED'" (click)="setBulkTarget('PREPARED')">Tragos</button>
+        </div>
+      </div>
 
-      <label class="bulk-label">Qué querés actualizar</label>
-      <select [(ngModel)]="bulkSelection" (ngModelChange)="updateBulkPreview()">
-        <option [ngValue]="'ALL'">Todos los productos</option>
-        <option *ngFor="let c of categories" [ngValue]="c.id">Categoría: {{ c.name }}</option>
-        <option [ngValue]="'PREPARED'">Tragos (preparados)</option>
-      </select>
-
-      <div class="bulk-row">
+      <!-- 1. Qué cambiar -->
+      <div class="bulk-settings">
         <div class="bulk-field">
-          <label class="bulk-label">Porcentaje</label>
-          <div class="percent-input">
-            <input
-              type="number"
-              [(ngModel)]="bulkPercent"
-              (ngModelChange)="updateBulkPreview()"
-              placeholder="Ej: 15"
-            />
-            <span>%</span>
+          <label class="bulk-label">Tipo de ajuste</label>
+          <div class="segmented">
+            <button [class.active]="bulkMode === 'PERCENT'" (click)="bulkMode = 'PERCENT'">%</button>
+            <button [class.active]="bulkMode === 'AMOUNT'" (click)="bulkMode = 'AMOUNT'">$ fijo</button>
           </div>
         </div>
 
         <div class="bulk-field">
-          <label class="bulk-label">Redondeo</label>
-          <select [(ngModel)]="bulkRoundTo" (ngModelChange)="updateBulkPreview()">
+          <label class="bulk-label">{{ bulkMode === 'PERCENT' ? 'Porcentaje' : 'Monto' }}</label>
+          <div class="value-input" [class.is-amount]="bulkMode === 'AMOUNT'">
+            <span class="prefix" *ngIf="bulkMode === 'AMOUNT'">$</span>
+            <input type="number" [(ngModel)]="bulkValue" [placeholder]="bulkMode === 'PERCENT' ? 'Ej: 15' : 'Ej: 500'" />
+            <span class="suffix" *ngIf="bulkMode === 'PERCENT'">%</span>
+          </div>
+        </div>
+
+        <div class="bulk-field">
+          <label class="bulk-label">Aplicar a</label>
+          <div class="segmented">
+            <button [class.active]="bulkApplyTo === 'PRICE'" (click)="bulkApplyTo = 'PRICE'">Venta</button>
+            <button [class.active]="bulkApplyTo === 'COST'" (click)="bulkApplyTo = 'COST'">Costo</button>
+            <button [class.active]="bulkApplyTo === 'BOTH'" (click)="bulkApplyTo = 'BOTH'">Ambos</button>
+          </div>
+        </div>
+
+        <div class="bulk-field" *ngIf="bulkChangesPrice()">
+          <label class="bulk-label">Redondeo venta</label>
+          <select [(ngModel)]="bulkRoundTo">
             <option [ngValue]="1">Al peso</option>
             <option [ngValue]="10">A $10</option>
             <option [ngValue]="50">A $50</option>
@@ -261,45 +274,81 @@
         </div>
       </div>
 
-      <small class="bulk-hint">Para bajar precios usá un número negativo (ej: -10). El redondeo es siempre hacia arriba.</small>
+      <small class="bulk-hint">Para bajar, usá un número negativo. El precio de venta se redondea hacia arriba; el costo no se redondea.</small>
 
-      <div class="bulk-preview-box">
-        <div class="bulk-empty" *ngIf="bulkLoading">Cargando productos…</div>
-
-        <div class="bulk-empty" *ngIf="!bulkLoading && !bulkPercentIsValid()">
-          Ingresá un porcentaje para ver cómo quedan los precios.
-        </div>
-
-        <div class="bulk-empty" *ngIf="!bulkLoading && bulkPercentIsValid() && !bulkPreview.length">
-          No hay productos en esa selección.
-        </div>
-
-        <ng-container *ngIf="!bulkLoading && bulkPreview.length">
-          <div class="bulk-preview-head">
-            <span>{{ bulkPreview.length }} {{ bulkPreview.length === 1 ? 'precio' : 'precios' }}</span>
-            <span>Actual → Nuevo</span>
-          </div>
-          <div class="bulk-preview-row" *ngFor="let p of bulkPreview">
-            <span class="bulk-name">{{ p.name }}</span>
-            <span class="bulk-prices">
-              <s>${{ p.oldPrice | number:'1.0-0' }}</s>
-              <b>${{ p.newPrice | number:'1.0-0' }}</b>
-            </span>
-          </div>
-        </ng-container>
+      <!-- 2. A qué productos -->
+      <div class="bulk-filters">
+        <input
+          type="text"
+          [(ngModel)]="bulkSearch"
+          (ngModelChange)="updateBulkView()"
+          [placeholder]="bulkTarget === 'PREPARED' ? 'Buscar trago…' : 'Buscar producto…'"
+        />
+        <select
+          *ngIf="bulkTarget === 'PRODUCTS'"
+          [(ngModel)]="bulkFilterCategory"
+          (ngModelChange)="updateBulkView()"
+        >
+          <option [ngValue]="'ALL'">Todas las categorías</option>
+          <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+          <option [ngValue]="null">Sin categoría</option>
+        </select>
       </div>
 
-      <small class="bulk-warning" *ngIf="bulkPreview.length">
-        Las mesas abiertas y las deudas de cuenta corriente también pasan a calcularse con los precios nuevos.
+      <div class="bulk-list-head">
+        <label class="check">
+          <input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleAllVisible()" [disabled]="!bulkVisible.length" />
+          <span>Seleccionar los {{ bulkVisible.length }} de la lista</span>
+        </label>
+        <button class="link-btn" *ngIf="bulkSelected.size" (click)="clearBulkSelection()">Quitar selección</button>
+      </div>
+
+      <div class="bulk-list">
+        <div class="bulk-empty" *ngIf="bulkLoading">Cargando…</div>
+        <div class="bulk-empty" *ngIf="!bulkLoading && !bulkVisible.length">No hay resultados.</div>
+
+        <label
+          class="bulk-item"
+          *ngFor="let p of bulkVisible"
+          [class.selected]="bulkSelected.has(p.id)"
+        >
+          <input type="checkbox" [checked]="bulkSelected.has(p.id)" (change)="toggleBulkItem(p.id)" />
+
+          <span class="bulk-item-name">
+            {{ p.name }}
+            <small *ngIf="bulkTarget === 'PRODUCTS'">{{ p.category?.name || 'Sin categoría' }}</small>
+          </span>
+
+          <span class="bulk-item-prices">
+            <span class="price-line" [class.changing]="bulkSelected.has(p.id) && bulkValueIsValid() && bulkChangesPrice()">
+              <em>Venta</em>
+              <ng-container *ngIf="bulkSelected.has(p.id) && bulkValueIsValid() && bulkChangesPrice(); else samePrice">
+                <s>${{ p.price | number:'1.0-0' }}</s> <b>${{ bulkNewPrice(p.price) | number:'1.0-0' }}</b>
+              </ng-container>
+              <ng-template #samePrice>${{ p.price | number:'1.0-0' }}</ng-template>
+            </span>
+            <span class="price-line cost" [class.changing]="bulkSelected.has(p.id) && bulkValueIsValid() && bulkChangesCost()">
+              <em>Costo</em>
+              <ng-container *ngIf="bulkSelected.has(p.id) && bulkValueIsValid() && bulkChangesCost(); else sameCost">
+                <s>${{ (p.costPrice || 0) | number:'1.0-2' }}</s> <b>${{ bulkNewCost(p.costPrice || 0) | number:'1.0-2' }}</b>
+              </ng-container>
+              <ng-template #sameCost>${{ (p.costPrice || 0) | number:'1.0-2' }}</ng-template>
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <small class="bulk-warning" *ngIf="bulkSelected.size && bulkChangesPrice()">
+        Las mesas abiertas y las deudas de cuenta corriente también pasan a calcularse con los precios de venta nuevos.
       </small>
 
       <div class="modal-actions">
         <button
           class="primary"
           (click)="applyBulkPrice()"
-          [disabled]="applyingBulk || !bulkPreview.length"
+          [disabled]="applyingBulk || !bulkSelected.size || !bulkValueIsValid()"
         >
-          {{ applyingBulk ? 'Actualizando…' : 'Actualizar ' + bulkPreview.length + ' precios' }}
+          {{ applyingBulk ? 'Actualizando…' : (bulkSelected.size ? 'Actualizar ' + bulkSelected.size + (bulkSelected.size === 1 ? ' producto' : ' productos') : 'Elegí productos') }}
         </button>
         <button class="cancel" (click)="closeBulkPrice()" [disabled]="applyingBulk">
           Cancelar
