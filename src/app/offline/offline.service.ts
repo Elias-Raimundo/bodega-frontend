@@ -164,16 +164,21 @@ export class OfflineService {
 
   // Prueba si el servidor responde (endpoint público, sin sesión)
   checkConnection() {
+    // Si el navegador informa que no hay red, no tiene sentido probar
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      if (this.online) this.markOffline();
+      return;
+    }
+
     this.http.get(`${API_URL}/auth/test`, {
       responseType: 'text',
       context: new HttpContext().set(SKIP_OFFLINE, true)
     }).pipe(timeout(10000)).subscribe({
       next: () => this.setOnline(),
-      error: (err) => {
-        // Cualquier respuesta del servidor (aunque sea error) significa que hay conexión
-        if (err?.status > 0) {
-          this.setOnline();
-        } else if (this.online) {
+      error: () => {
+        // Solo se considera que hay conexión si el servidor respondió bien.
+        // (Sin internet, el service worker contesta 504: eso NO es conexión.)
+        if (this.online) {
           this.markOffline();
         }
       }
@@ -183,6 +188,11 @@ export class OfflineService {
   // ───────────────────────── Entrada desde el interceptor ─────────────────────────
 
   handle(req: HttpRequest<any>, next: HttpHandlerFn): Observable<HttpEvent<any>> {
+    // Si el navegador ya sabe que no hay red, ni se intenta
+    if (this.online && typeof navigator !== 'undefined' && navigator.onLine === false) {
+      this.markOffline();
+    }
+
     const path = req.urlWithParams.substring(API_URL.length);
     const pathOnly = path.split('?')[0];
     const isGet = req.method === 'GET';
@@ -271,8 +281,13 @@ export class OfflineService {
     return false;
   }
 
+  // Errores que significan "no se llegó al servidor":
+  // - 0: el navegador no pudo conectarse
+  // - 504: el service worker no pudo conectarse (responde así cuando no hay red)
+  // - 502/503: el servidor no está disponible (caído o reiniciándose)
+  // - timeout: tardó demasiado
   private isNetworkError(err: any): boolean {
-    return err instanceof TimeoutError || err?.status === 0;
+    return err instanceof TimeoutError || [0, 502, 503, 504].includes(err?.status);
   }
 
   private networkGet(req: HttpRequest<any>, path: string, next: HttpHandlerFn): Observable<HttpEvent<any>> {
