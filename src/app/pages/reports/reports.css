@@ -1508,3 +1508,173 @@
     padding: 0 10px;
   }
 }
+
+
+/* ── ANULACIÓN DE VENTAS ── */
+.cancel-sale-btn {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--rose);
+  border: 1px solid rgba(244, 63, 94, 0.35) !important;
+}
+
+.cancel-sale-btn:hover {
+  background: rgba(244, 63, 94, 0.2);
+}
+
+.cancel-sale-form {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  margin-top: 4px;
+  border-radius: var(--radius-md);
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.cancel-sale-form h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.cancel-sale-form p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.cancel-sale-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface, rgba(255, 255, 255, 0.04));
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.cancel-sale-form textarea:focus {
+  border-color: var(--rose);
+}
+
+.cancel-sale-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-sale-actions button {
+  flex: 1;
+  height: 42px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-cancel-btn {
+  border: none;
+  color: white;
+  background: var(--rose);
+}
+
+.confirm-cancel-btn:disabled,
+.cancel-sale-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelled-banner {
+  flex-shrink: 0;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: #fecdd3;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.cancelled-banner strong {
+  color: var(--rose);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.cancelled-banner span {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.cancelled-sales {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed rgba(244, 63, 94, 0.35);
+  background: rgba(244, 63, 94, 0.04);
+}
+
+.cancelled-sales-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.cancelled-sales-title h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--rose);
+}
+
+.cancelled-sales-title span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cancelled-row {
+  display: grid;
+  grid-template-columns: 140px 110px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.cancelled-date { color: var(--text-secondary); }
+
+.cancelled-total {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  font-weight: 700;
+}
+
+.cancelled-reason {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .cancelled-row {
+    grid-template-columns: 1fr auto;
+  }
+  .cancelled-reason {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+}

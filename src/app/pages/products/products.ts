@@ -7,6 +7,7 @@ import { NavigationEnd, Router, RouterModule} from '@angular/router';
 import { filter } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 import { ProductsService } from '../../products.service';
+import { PreparedProductsService } from '../../prepared-products.service';
 
 @Component({
   selector: 'app-products',
@@ -45,6 +46,17 @@ export class Products implements OnInit {
   showCreateProductModal = false;
   showCategoriesModal = false;
   showImportModal = false;
+
+  // Aumento de precios en masa
+  showBulkPriceModal = false;
+  bulkSelection: any = 'ALL';          // 'ALL', 'PREPARED' o el id de una categoría
+  bulkPercent: number | null = null;
+  bulkRoundTo = 50;
+  bulkPreview: { name: string; oldPrice: number; newPrice: number }[] = [];
+  bulkAllProducts: any[] = [];
+  bulkAllPrepared: any[] = [];
+  bulkLoading = false;
+  applyingBulk = false;
   stockFilter = 'all';
   stats: any = null;
 
@@ -68,7 +80,8 @@ export class Products implements OnInit {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService,
-    private productsService: ProductsService
+    private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService
   ) {}
 
   ngOnInit() {
@@ -535,5 +548,121 @@ export class Products implements OnInit {
 
   toNumber(value: any): number {
     return Number(value);
+  }
+
+  // ───────── Aumento de precios en masa ─────────
+
+  openBulkPrice() {
+    this.showBulkPriceModal = true;
+    this.bulkSelection = 'ALL';
+    this.bulkPercent = null;
+    this.bulkRoundTo = 50;
+    this.bulkPreview = [];
+    this.bulkLoading = true;
+
+    // Listas completas y actualizadas (la tabla puede estar filtrada)
+    this.productsService.getProducts('', null, true).subscribe({
+      next: (res) => {
+        this.bulkAllProducts = res;
+        this.preparedProductsService.getPreparedProducts(true).subscribe({
+          next: (prepared) => {
+            this.bulkAllPrepared = prepared;
+            this.bulkLoading = false;
+            this.updateBulkPreview();
+          },
+          error: () => {
+            this.bulkAllPrepared = [];
+            this.bulkLoading = false;
+            this.updateBulkPreview();
+          }
+        });
+      },
+      error: (err) => {
+        this.bulkLoading = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron cargar los productos'));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeBulkPrice() {
+    if (this.applyingBulk) return;
+    this.showBulkPriceModal = false;
+    this.bulkPreview = [];
+  }
+
+  // Misma fórmula que el backend: precio * (1 + %), redondeado hacia arriba
+  calculateNewPrice(price: number, percent: number, roundTo: number): number {
+    let raw = price * (1 + percent / 100);
+    raw = Math.round(raw * 100) / 100;
+    const result = roundTo > 1 ? Math.ceil(raw / roundTo) * roundTo : Math.ceil(raw);
+    return Math.max(result, 0);
+  }
+
+  bulkPercentIsValid(): boolean {
+    const p = Number(this.bulkPercent);
+    return this.bulkPercent !== null && !isNaN(p) && p !== 0 && p >= -90 && p <= 500;
+  }
+
+  updateBulkPreview() {
+    if (!this.bulkPercentIsValid()) {
+      this.bulkPreview = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const percent = Number(this.bulkPercent);
+    const roundTo = Number(this.bulkRoundTo);
+
+    let items: any[];
+    if (this.bulkSelection === 'PREPARED') {
+      items = this.bulkAllPrepared;
+    } else if (this.bulkSelection === 'ALL') {
+      items = this.bulkAllProducts;
+    } else {
+      items = this.bulkAllProducts.filter(p => p.category?.id === this.bulkSelection);
+    }
+
+    this.bulkPreview = items
+      .filter(i => i.price != null)
+      .map(i => ({
+        name: i.name,
+        oldPrice: Number(i.price),
+        newPrice: this.calculateNewPrice(Number(i.price), percent, roundTo)
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    this.cdr.detectChanges();
+  }
+
+  applyBulkPrice() {
+    if (this.applyingBulk || !this.bulkPreview.length || !this.bulkPercentIsValid()) return;
+
+    this.applyingBulk = true;
+
+    const isPrepared = this.bulkSelection === 'PREPARED';
+
+    this.http.post<any>(`${this.apiUrl}/products/bulk-price`, {
+      target: isPrepared ? 'PREPARED' : 'PRODUCTS',
+      categoryId: isPrepared || this.bulkSelection === 'ALL' ? null : this.bulkSelection,
+      percent: Number(this.bulkPercent),
+      roundTo: Number(this.bulkRoundTo)
+    }).subscribe({
+      next: (res) => {
+        this.applyingBulk = false;
+        this.toastr.success(`Se actualizaron ${res?.updated ?? this.bulkPreview.length} precios`);
+        this.showBulkPriceModal = false;
+        this.bulkPreview = [];
+        this.productsService.invalidateCache();
+        this.preparedProductsService.invalidateCache();
+        this.load(this.search, this.selectedFilterCategoryId, true);
+        this.loadStats();
+      },
+      error: (err) => {
+        this.applyingBulk = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudieron actualizar los precios'));
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

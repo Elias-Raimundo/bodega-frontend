@@ -27,6 +27,13 @@
         Importar CSV
       </button>
 
+      <button
+        class="secondary"
+        (click)="openBulkPrice()"
+      >
+        % Aumentar precios
+      </button>
+
     </div>
   </div>
 
@@ -214,6 +221,92 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- AUMENTO DE PRECIOS EN MASA -->
+  <div class="modal" *ngIf="showBulkPriceModal">
+    <div class="modal-content bulk-modal">
+
+      <h3>Aumentar precios</h3>
+
+      <label class="bulk-label">Qué querés actualizar</label>
+      <select [(ngModel)]="bulkSelection" (ngModelChange)="updateBulkPreview()">
+        <option [ngValue]="'ALL'">Todos los productos</option>
+        <option *ngFor="let c of categories" [ngValue]="c.id">Categoría: {{ c.name }}</option>
+        <option [ngValue]="'PREPARED'">Tragos (preparados)</option>
+      </select>
+
+      <div class="bulk-row">
+        <div class="bulk-field">
+          <label class="bulk-label">Porcentaje</label>
+          <div class="percent-input">
+            <input
+              type="number"
+              [(ngModel)]="bulkPercent"
+              (ngModelChange)="updateBulkPreview()"
+              placeholder="Ej: 15"
+            />
+            <span>%</span>
+          </div>
+        </div>
+
+        <div class="bulk-field">
+          <label class="bulk-label">Redondeo</label>
+          <select [(ngModel)]="bulkRoundTo" (ngModelChange)="updateBulkPreview()">
+            <option [ngValue]="1">Al peso</option>
+            <option [ngValue]="10">A $10</option>
+            <option [ngValue]="50">A $50</option>
+            <option [ngValue]="100">A $100</option>
+          </select>
+        </div>
+      </div>
+
+      <small class="bulk-hint">Para bajar precios usá un número negativo (ej: -10). El redondeo es siempre hacia arriba.</small>
+
+      <div class="bulk-preview-box">
+        <div class="bulk-empty" *ngIf="bulkLoading">Cargando productos…</div>
+
+        <div class="bulk-empty" *ngIf="!bulkLoading && !bulkPercentIsValid()">
+          Ingresá un porcentaje para ver cómo quedan los precios.
+        </div>
+
+        <div class="bulk-empty" *ngIf="!bulkLoading && bulkPercentIsValid() && !bulkPreview.length">
+          No hay productos en esa selección.
+        </div>
+
+        <ng-container *ngIf="!bulkLoading && bulkPreview.length">
+          <div class="bulk-preview-head">
+            <span>{{ bulkPreview.length }} {{ bulkPreview.length === 1 ? 'precio' : 'precios' }}</span>
+            <span>Actual → Nuevo</span>
+          </div>
+          <div class="bulk-preview-row" *ngFor="let p of bulkPreview">
+            <span class="bulk-name">{{ p.name }}</span>
+            <span class="bulk-prices">
+              <s>${{ p.oldPrice | number:'1.0-0' }}</s>
+              <b>${{ p.newPrice | number:'1.0-0' }}</b>
+            </span>
+          </div>
+        </ng-container>
+      </div>
+
+      <small class="bulk-warning" *ngIf="bulkPreview.length">
+        Las mesas abiertas y las deudas de cuenta corriente también pasan a calcularse con los precios nuevos.
+      </small>
+
+      <div class="modal-actions">
+        <button
+          class="primary"
+          (click)="applyBulkPrice()"
+          [disabled]="applyingBulk || !bulkPreview.length"
+        >
+          {{ applyingBulk ? 'Actualizando…' : 'Actualizar ' + bulkPreview.length + ' precios' }}
+        </button>
+        <button class="cancel" (click)="closeBulkPrice()" [disabled]="applyingBulk">
+          Cancelar
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <!-- CREATE PRODUCT MODAL -->

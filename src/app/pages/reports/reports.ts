@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import jsPDF from 'jspdf';
+import { ProductsService } from '../../products.service';
+import { PreparedProductsService } from '../../prepared-products.service';
 import autoTable from 'jspdf-autotable';
 
 const API_URL = 'https://bodega-backend-9c4f.onrender.com';
@@ -46,6 +48,11 @@ export class Reports implements OnInit {
 
   selectedSale: any = null;
 
+  // Anulación de ventas
+  showCancelForm = false;
+  cancelReason = '';
+  cancellingSale = false;
+
   selectedClosure: any = null;
   company: any = null;
 
@@ -64,7 +71,9 @@ export class Reports implements OnInit {
   constructor(
     private http: HttpClient,
     private cdRef: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private productsService: ProductsService,
+    private preparedProductsService: PreparedProductsService
   ) {}
 
   ngOnInit() {
@@ -174,10 +183,51 @@ export class Reports implements OnInit {
 
   openSale(sale: any) {
     this.selectedSale = sale;
+    this.showCancelForm = false;
+    this.cancelReason = '';
   }
 
   closeSale() {
     this.selectedSale = null;
+    this.showCancelForm = false;
+    this.cancelReason = '';
+  }
+
+  // Anula la venta: devuelve el stock, saca la deuda de cuenta corriente
+  // y deja de contar en totales, caja y reportes.
+  confirmCancelSale() {
+    if (!this.selectedSale || this.cancellingSale) return;
+
+    const reason = this.cancelReason.trim();
+    if (!reason) {
+      this.toastr.warning('Escribí el motivo de la anulación');
+      return;
+    }
+
+    this.cancellingSale = true;
+
+    this.http.post<any>(
+      `${API_URL}/sales/${this.selectedSale.id}/cancel`,
+      { reason },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (res) => {
+        this.cancellingSale = false;
+        this.toastr.success(`Venta #${this.selectedSale.id} anulada. Se devolvió el stock.`);
+        if (res?.warning) {
+          this.toastr.warning(res.warning, 'Revisá la cuenta corriente', { timeOut: 15000 });
+        }
+        this.productsService.invalidateCache();
+        this.preparedProductsService.invalidateCache();
+        this.closeSale();
+        this.loadReport();
+      },
+      error: (err) => {
+        this.cancellingSale = false;
+        this.toastr.error(this.getErrorMessage(err, 'No se pudo anular la venta'));
+        this.cdRef.detectChanges();
+      }
+    });
   }
 
   getPaymentMethodLabel(method: string): string {

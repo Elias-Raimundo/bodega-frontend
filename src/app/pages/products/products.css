@@ -752,3 +752,145 @@ tbody tr:hover {
   background: rgba(245, 158, 11, 0.2);
   border-color: var(--amber);
 }
+
+/* ── AUMENTO DE PRECIOS EN MASA ── */
+.bulk-modal {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.bulk-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: -4px;
+}
+
+.bulk-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.bulk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bulk-field select,
+.bulk-modal > select {
+  width: 100%;
+}
+
+.percent-input {
+  position: relative;
+}
+
+.percent-input input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 34px;
+}
+
+.percent-input span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.bulk-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.bulk-preview-box {
+  flex: 1;
+  min-height: 80px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bulk-empty {
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.bulk-preview-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bulk-preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bulk-preview-row:last-child {
+  border-bottom: none;
+}
+
+.bulk-name {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bulk-prices {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.bulk-prices s {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.bulk-prices b {
+  color: var(--emerald, #10b981);
+  font-weight: 800;
+}
+
+.bulk-warning {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #fcd34d;
+}
+
+@media (max-width: 500px) {
+  .bulk-row {
+    grid-template-columns: 1fr;
+  }
+}

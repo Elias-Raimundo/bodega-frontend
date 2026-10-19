@@ -133,6 +133,23 @@
 
     </div>
 
+    <!-- Ventas anuladas del período (no cuentan en los totales) -->
+    <div class="cancelled-sales" *ngIf="report.cancelledSales?.length">
+      <div class="cancelled-sales-title">
+        <h4>Ventas anuladas ({{ report.cancelledSales.length }})</h4>
+        <span>No cuentan en ningún total</span>
+      </div>
+
+      <div class="cancelled-row" *ngFor="let sale of report.cancelledSales">
+        <div class="cancelled-date">{{ sale.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div class="cancelled-total">${{ sale.total | number:'1.0-0' }}</div>
+        <div class="cancelled-reason">{{ sale.cancelReason }}</div>
+        <div>
+          <button class="detail-btn" (click)="openSale(sale)">Ver</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TAB PRODUCTOS -->
@@ -404,6 +421,12 @@
 
       <div class="modal-date">{{ selectedSale.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
 
+      <div class="cancelled-banner" *ngIf="selectedSale.cancelled">
+        <strong>Venta anulada</strong>
+        el {{ selectedSale.cancelledAt | date:'dd/MM/yyyy HH:mm' }}
+        <span>Motivo: {{ selectedSale.cancelReason }}</span>
+      </div>
+
       <!-- Parte con scroll: productos, total y pagos.
            El encabezado y los botones quedan siempre visibles. -->
       <div class="modal-body">
@@ -433,11 +456,41 @@
 
       </div>
 
-      <div class="modal-actions">
+      <div class="modal-actions" *ngIf="!showCancelForm">
         <button class="pdf-btn" (click)="downloadSalePdf(selectedSale)">
           📄 Descargar PDF
         </button>
+        <button
+          class="cancel-sale-btn"
+          *ngIf="!selectedSale.cancelled"
+          (click)="showCancelForm = true"
+        >
+          Anular venta
+        </button>
         <button class="close-modal-btn" (click)="closeSale()">Cerrar</button>
+      </div>
+
+      <!-- Confirmación de anulación -->
+      <div class="cancel-sale-form" *ngIf="showCancelForm">
+        <h4>¿Anular la venta #{{ selectedSale.id }} por ${{ selectedSale.total | number:'1.0-0' }}?</h4>
+        <p>
+          Se devuelve el stock y la venta deja de contar en reportes, caja y cuenta corriente.
+          Queda registrada como anulada. No se puede deshacer.
+        </p>
+        <textarea
+          [(ngModel)]="cancelReason"
+          maxlength="255"
+          rows="2"
+          placeholder="Motivo (ej: se cargó mal el producto, el cliente no pagó...)"
+        ></textarea>
+        <div class="cancel-sale-actions">
+          <button class="close-modal-btn" (click)="showCancelForm = false; cancelReason = ''" [disabled]="cancellingSale">
+            Volver
+          </button>
+          <button class="confirm-cancel-btn" (click)="confirmCancelSale()" [disabled]="cancellingSale || !cancelReason.trim()">
+            {{ cancellingSale ? 'Anulando…' : 'Confirmar anulación' }}
+          </button>
+        </div>
       </div>
 
     </div>
