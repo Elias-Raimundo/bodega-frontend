@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectorRef } from '@angular/core';
 import { ProductsService } from '../products.service';
 import { PreparedProductsService } from '../prepared-products.service';
+import { OfflineService, OfflineStatus } from '../offline/offline.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -18,6 +19,7 @@ export class MainLayout implements OnInit {
 
   companyName = '';
   logo: string | null = null;
+  offlineStatus: OfflineStatus | null = null;
 
   constructor(
     private http: HttpClient, 
@@ -25,10 +27,17 @@ export class MainLayout implements OnInit {
     private companyService: CompanyService,
     private cdRef: ChangeDetectorRef,
     private productsService: ProductsService,
-    private preparedProductsService: PreparedProductsService
+    private preparedProductsService: PreparedProductsService,
+    public offline: OfflineService
   ) {}
 
   ngOnInit() {
+    this.offline.start();
+    this.offline.status$.subscribe(status => {
+      this.offlineStatus = status;
+      this.cdRef.detectChanges();
+    });
+
     this.companyService.company$.subscribe(company => {
       if (company) {
         this.logo = company.logo || null;
@@ -58,6 +67,14 @@ export class MainLayout implements OnInit {
   }
 
   logout() {
+    const pending = this.offline.pendingCount();
+    if (pending > 0 && !confirm(
+      `Hay ${pending} ${pending === 1 ? 'operación' : 'operaciones'} sin sincronizar. ` +
+      'Quedan guardadas en esta computadora y se envían cuando vuelvas a entrar con esta cuenta. ¿Cerrar sesión igual?'
+    )) {
+      return;
+    }
+
     this.companyService.clear();
     this.productsService.invalidateCache(); 
     this.preparedProductsService.invalidateCache();

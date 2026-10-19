@@ -59,6 +59,41 @@
       <button class="logout-btn mobile-logout" (click)="logout()">Salir</button>
     </nav>
 
+    <!-- Aviso de modo sin conexión / sincronización -->
+    <div
+      class="offline-banner"
+      *ngIf="offlineStatus && (!offlineStatus.online || offlineStatus.pending > 0 || offlineStatus.error)"
+      [class.is-offline]="!offlineStatus.online"
+      [class.is-error]="offlineStatus.error"
+    >
+      <ng-container *ngIf="offlineStatus.error; else normalState">
+        <span class="offline-dot"></span>
+        <span class="offline-text">
+          <strong>No se pudo sincronizar:</strong>
+          {{ offlineStatus.errorLabel }} — {{ offlineStatus.error }}
+        </span>
+        <div class="offline-actions">
+          <button (click)="offline.retrySync()">Reintentar</button>
+          <button class="ghost" (click)="offline.discardFailed()">Descartar esta operación</button>
+        </div>
+      </ng-container>
+
+      <ng-template #normalState>
+        <span class="offline-dot"></span>
+        <span class="offline-text" *ngIf="!offlineStatus.online">
+          <strong>Sin conexión.</strong>
+          Ventas y mesas siguen funcionando y se guardan en esta computadora.
+          <span *ngIf="offlineStatus.pending > 0">
+            {{ offlineStatus.pending }} {{ offlineStatus.pending === 1 ? 'operación pendiente' : 'operaciones pendientes' }}.
+          </span>
+        </span>
+        <span class="offline-text" *ngIf="offlineStatus.online">
+          <strong>Sincronizando…</strong>
+          Faltan enviar {{ offlineStatus.pending }} {{ offlineStatus.pending === 1 ? 'operación' : 'operaciones' }}.
+        </span>
+      </ng-template>
+    </div>
+
     <div class="page">
       <router-outlet></router-outlet>
     </div>

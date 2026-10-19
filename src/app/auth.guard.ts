@@ -2,6 +2,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { CompanyService } from './services/company.service';
+import { OfflineService } from './offline/offline.service';
 
 // Lee la fecha de vencimiento que viene adentro del token (JWT)
 // y dice si ya pasó. Si el token está roto, lo tomamos como vencido.
@@ -31,6 +32,15 @@ export const authGuard: CanActivateFn = () => {
   const token = localStorage.getItem('token');
 
   if (!isTokenExpired(token)) {
+    return true;
+  }
+
+  // Sin internet no se puede iniciar sesión: si la sesión vence durante un
+  // corte, se deja seguir trabajando. Al volver internet, el servidor pide
+  // iniciar sesión y recién ahí se sincroniza lo pendiente.
+  const offline = inject(OfflineService);
+  const hasToken = !!token && token !== 'undefined';
+  if (hasToken && (!offline.isOnline() || !navigator.onLine)) {
     return true;
   }
 
