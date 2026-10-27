@@ -3,6 +3,13 @@
 
     <h1>🍷 Mesas</h1>
 
+    <div class="header-actions">
+
+    <div class="sort-toggle" role="group" aria-label="Ordenar mesas">
+      <button [class.active]="tablesSort === 'occupied'" (click)="setTablesSort('occupied')">Ocupadas primero</button>
+      <button [class.active]="tablesSort === 'number'" (click)="setTablesSort('number')">A-Z</button>
+    </div>
+
     <div class="create-tables">
 
       <input
@@ -18,6 +25,7 @@
         {{ creatingTables ? 'Creando...' : 'Crear mesas' }}
       </button>
 
+    </div>
     </div>
   </div>
 

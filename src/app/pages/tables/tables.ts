@@ -106,12 +106,45 @@ export class Tables implements OnInit {
     return fallback;
   }
 
+  // Orden de las mesas: 'occupied' = ocupadas primero, 'number' = alfabético (A-Z).
+  // Se recuerda en esta computadora.
+  tablesSort: 'occupied' | 'number' = this.readTablesSort();
+
+  private readTablesSort(): 'occupied' | 'number' {
+    try {
+      return localStorage.getItem('tables_sort') === 'number' ? 'number' : 'occupied';
+    } catch {
+      return 'occupied';
+    }
+  }
+
+  setTablesSort(mode: 'occupied' | 'number') {
+    this.tablesSort = mode;
+    try { localStorage.setItem('tables_sort', mode); } catch {}
+    this.tables = this.sortTables(this.tables);
+    this.cdRef.detectChanges();
+  }
+
+  // Orden alfabético "natural": sin distinguir mayúsculas (abril = ABRIL) y
+  // con los números bien ordenados (Mesa 2 antes que Mesa 10).
+  private sortTables(list: any[]): any[] {
+    const byName = (a: any, b: any) =>
+      (a.name || '').localeCompare(b.name || '', 'es', { numeric: true, sensitivity: 'base' });
+
+    return [...(list || [])].sort((a, b) => {
+      if (this.tablesSort === 'occupied' && !!a.occupied !== !!b.occupied) {
+        return a.occupied ? -1 : 1;
+      }
+      return byName(a, b);
+    });
+  }
+
   loadTables() {
     this.http.get<any[]>(`${API_URL}/tables`, {
       headers: this.getHeaders()
     }).subscribe({
       next: (res) => {
-        this.tables = res;
+        this.tables = this.sortTables(res);
         this.cdRef.detectChanges();
       },
       error: (err) => {
