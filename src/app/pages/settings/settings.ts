@@ -109,7 +109,16 @@ export class Settings {
     const reader = new FileReader();
 
     reader.onload = () => {
-      this.logoUrl = reader.result as string;
+      // Se achica a 300 px como máximo antes de guardarlo: un logo de varios
+      // MB hacía todo más lento y gastaba ancho de banda en cada carga.
+      this.resizeImage(reader.result as string, 300)
+        .then(small => {
+          this.logoUrl = small;
+          this.cdRef.detectChanges();
+        })
+        .catch(() => {
+          this.toastr.error('No se pudo procesar la imagen');
+        });
     };
 
     reader.onerror = () => {
@@ -156,6 +165,35 @@ export class Settings {
         this.toastr.error(this.getErrorMessage(err, 'No se pudo actualizar el logo'));
         this.cdRef.detectChanges();
       }
+    });
+  }
+
+  // Achica una imagen (data URL) para que su lado más largo mida como mucho
+  // maxSize píxeles. Usa WebP (mantiene transparencia y pesa poco) y, si el
+  // navegador no lo soporta, PNG.
+  private resizeImage(dataUrl: string, maxSize: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject();
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const webp = canvas.toDataURL('image/webp', 0.9);
+        resolve(webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => reject();
+      img.src = dataUrl;
     });
   }
 }

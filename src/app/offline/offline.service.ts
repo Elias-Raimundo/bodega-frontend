@@ -35,8 +35,11 @@ export const SKIP_OFFLINE = new HttpContextToken<boolean>(() => false);
 
 const REQUEST_TIMEOUT = 30000;
 const PING_INTERVAL = 15000;
-const SNAPSHOT_INTERVAL = 60000;
-const CATALOG_INTERVAL = 5 * 60000;
+// Copia de seguridad automática: espaciada para no gastar ancho de banda
+// de la base (Supabase cobra por los datos que salen). Además, cada vez que
+// se usan las pantallas de Mesas o Ventas la copia se actualiza sola.
+const SNAPSHOT_INTERVAL = 5 * 60000;
+const CATALOG_INTERVAL = 30 * 60000;
 
 export interface OfflineStatus {
   online: boolean;
@@ -116,7 +119,7 @@ export class OfflineService {
     }
 
     // Copia de seguridad periódica de mesas y catálogo mientras hay internet
-    setInterval(() => this.backgroundRefresh(), 15000);
+    setInterval(() => this.backgroundRefresh(), 60000);
     setTimeout(() => this.backgroundRefresh(), 2000);
 
     this.emit();
@@ -387,7 +390,7 @@ export class OfflineService {
   refreshSnapshot(force = false) {
     if (!this.online || !this.hasSession()) return;
     if (this.readQueue().length || this.syncing) return;
-    if (!force && Date.now() - this.lastSnapshot < 15000) return;
+    if (!force && Date.now() - this.lastSnapshot < 60000) return;
 
     this.lastSnapshot = Date.now();
     const startVersion = this.stateVersion;
@@ -412,6 +415,10 @@ export class OfflineService {
   private backgroundRefresh() {
     if (!this.online || !this.hasSession()) return;
 
+    // Si la pestaña no está a la vista (minimizada, otra pestaña), no se
+    // actualiza nada: no hace falta y ahorra consultas.
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+
     // Si quedó algo pendiente (por ejemplo, se cortó la sesión a mitad de
     // la sincronización), se retoma solo.
     if (this.readQueue().length && !this.syncing && !this.syncError) {
@@ -426,7 +433,7 @@ export class OfflineService {
 
     if (Date.now() - this.lastCatalog >= CATALOG_INTERVAL) {
       this.lastCatalog = Date.now();
-      ['/products', '/prepared-products', '/customers', '/categories']
+      ['/products', '/prepared-products', '/categories']
         .forEach(p => this.cacheFromServer(p));
     }
   }

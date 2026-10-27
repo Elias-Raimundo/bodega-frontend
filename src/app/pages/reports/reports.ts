@@ -6,6 +6,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import jsPDF from 'jspdf';
 import { ProductsService } from '../../products.service';
+import { CompanyService } from '../../services/company.service';
 import { PreparedProductsService } from '../../prepared-products.service';
 import autoTable from 'jspdf-autotable';
 
@@ -73,7 +74,8 @@ export class Reports implements OnInit {
     private cdRef: ChangeDetectorRef,
     private toastr: ToastrService,
     private productsService: ProductsService,
-    private preparedProductsService: PreparedProductsService
+    private preparedProductsService: PreparedProductsService,
+    private companyService: CompanyService
   ) {}
 
   ngOnInit() {
@@ -134,8 +136,15 @@ export class Reports implements OnInit {
   }
 
   loadCompany() {
+    // Solo se usa el nombre (para los PDF): si ya está cargado no se pide
+    const cached = this.companyService.getCompany();
+    if (cached?.name) {
+      this.company = cached;
+      return;
+    }
+
     this.http.get<any>(
-      `${API_URL}/companies/me`,
+      `${API_URL}/companies/me?logo=false`,
       { headers: this.getHeaders() }
     ).subscribe({
       next: (res) => {
