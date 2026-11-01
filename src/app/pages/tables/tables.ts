@@ -431,22 +431,28 @@ export class Tables implements OnInit {
 
   // Reparte en partes iguales entre las mesas tildadas, ajustando
   // centavos de redondeo en la última para que cierre exacto.
+  // Reparte en partes iguales SIN centavos: cada mesa paga pesos enteros
+  // y la diferencia (1 peso) va a las primeras mesas.
+  // Ej: $5000 entre 3 → $1667, $1667, $1666.
   splitEqually() {
     const selected = this.getSplitSelectedShares();
     if (!selected.length) return;
 
-    const equalAmount = Math.floor(
-      (this.splitTotal / selected.length) * 100
-    ) / 100;
+    const n = selected.length;
+    const base = Math.floor(this.splitTotal / n);
+    selected.forEach(s => s.amount = base);
 
-    selected.forEach(s => s.amount = equalAmount);
+    let remainder = Math.round((this.splitTotal - base * n) * 100) / 100;
 
-    const assigned = equalAmount * selected.length;
-    const diff = Math.round((this.splitTotal - assigned) * 100) / 100;
+    // Pesos sobrantes: uno a cada mesa, empezando por la primera
+    for (let i = 0; remainder >= 1 && i < n; i++) {
+      selected[i].amount += 1;
+      remainder = Math.round((remainder - 1) * 100) / 100;
+    }
 
-    if (diff !== 0) {
-      const last = selected[selected.length - 1];
-      last.amount = Math.round((last.amount + diff) * 100) / 100;
+    // Solo si el producto mismo tenía centavos, quedan en la primera
+    if (remainder > 0) {
+      selected[0].amount = Math.round((selected[0].amount + remainder) * 100) / 100;
     }
 
     this.cdRef.detectChanges();
